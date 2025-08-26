@@ -13,8 +13,11 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@tailwindcss/vite": "^4.1.12",
     "@tauri-apps/api": "^2",
-    "@tauri-apps/plugin-opener": "^2"
+    "@tauri-apps/plugin-opener": "^2",
+    "daisyui": "^5.0.51",
+    "tailwindcss": "^4.1.12"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.6",
