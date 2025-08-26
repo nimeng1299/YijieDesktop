@@ -1,157 +1,135 @@
 <script lang="ts">
   import "../app.css"
-  import { invoke } from "@tauri-apps/api/core";
-
-  let name = $state("");
-  let greetMsg = $state("");
-
-  async function greet(event: Event) {
-    event.preventDefault();
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    greetMsg = await invoke("greet", { name });
+  import TabContent from './TabContent.svelte';
+  import SettingContent from './SettingContent.svelte';
+  
+  let tabs = [
+    { id: 1, title: "首页" },
+  ];
+  
+  let activeTab = 1;
+  
+  // 为每个标签页维护独立的组件实例
+  let tabInstances = new Map();
+  
+  function closeTab(tabId) {
+    tabs = tabs.filter(tab => tab.id !== tabId);
+    // 清理标签页组件实例
+    tabInstances.delete(tabId);
+    if (activeTab === tabId && tabs.length > 0) {
+      activeTab = tabs[0].id;
+    }
+  }
+  
+  // 切换标签页的mode
+  function toggleMode(tabId) {
+    const instance = getTabInstance(tabId);
+    if (!instance.mode) {
+      instance.mode = 'login';
+    }
+    
+    if (instance.mode === 'login') {
+      instance.mode = 'roomlist';
+    } else {
+      instance.mode = 'login';
+    }
+  }
+  
+  function addTab() {
+    const newId = tabs.length > 0 ? Math.max(...tabs.map(t => t.id)) + 1 : 1;
+    tabs = [...tabs, { id: newId, title: `新标签 ${newId}` }];
+  }
+  
+  function addSettingTab() {
+    // 检查是否已存在设置标签页
+    const existingSettingTab = tabs.find(tab => tab.title.includes("设置"));
+    
+    if (existingSettingTab) {
+      // 如果存在设置标签页，则跳转到该标签页
+      activeTab = existingSettingTab.id;
+    } else {
+      // 如果不存在设置标签页，则创建新的设置标签页
+      const newId = tabs.length > 0 ? Math.max(...tabs.map(t => t.id)) + 1 : 1;
+      const tabId = newId;
+      tabs = [...tabs, { id: tabId, title: `设置 ${tabId}` }];
+      // 设置新标签页为激活状态
+      activeTab = tabId;
+    }
+  }
+  
+  // 获取或创建标签页组件实例
+  function getTabInstance(tabId) {
+    if (!tabInstances.has(tabId)) {
+      // 创建新的组件实例占位符
+      tabInstances.set(tabId, {});
+    }
+    return tabInstances.get(tabId);
+  }
+  
+  // 确定使用哪个组件来渲染标签页内容
+  function getComponentForTab(tabId) {
+    const tab = tabs.find(t => t.id === tabId);
+    // 如果标签页标题包含"设置"，则使用SettingContent组件
+    if (tab && tab.title.includes("设置")) {
+      return SettingContent;
+    }
+    // 默认使用TabContent组件
+    return TabContent;
   }
 </script>
 
-<main class="container">
-  <h1>Welcome to Tauri + Svelte</h1>
-
-  <div class="row">
-    <a href="https://vite.dev" target="_blank">
-      <img src="/vite.svg" class="logo vite" alt="Vite Logo" />
-    </a>
-    <a href="https://tauri.app" target="_blank">
-      <img src="/tauri.svg" class="logo tauri" alt="Tauri Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank">
-      <img src="/svelte.svg" class="logo svelte-kit" alt="SvelteKit Logo" />
-    </a>
+<div class="navbar bg-base-100">
+  <div class="navbar-start">
+    <div role="tablist" class="tabs tabs-lifted">
+      {#each tabs as tab (tab.id)}
+        <div class="tab flex items-center {activeTab === tab.id ? 'tab-active' : ''}">
+          <button 
+            role="tab"
+            class="flex-1 text-left"
+            on:click={() => activeTab = tab.id}
+          >
+            {tab.title}
+          </button>
+          <button 
+            class="btn btn-xs btn-circle btn-ghost ml-2" 
+            aria-label="关闭标签页 {tab.title}"
+            on:click|stopPropagation={() => closeTab(tab.id)}
+          >
+            ✕
+          </button>
+        </div>
+      {/each}
+      <button 
+        role="tab"
+        class="tab tab-plus"
+        aria-label="添加新标签页"
+        on:click={addTab}
+      >
+        <span class="text-xl">+</span>
+      </button>
+    </div>
   </div>
-  <p>Click on the Tauri, Vite, and SvelteKit logos to learn more.</p>
+  <div class="navbar-end">
+    <button class="btn btn-ghost btn-sm rounded-btn" aria-label="设置" on:click={addSettingTab}>设置</button>
+    <button class="btn btn-ghost btn-sm rounded-btn" aria-label="最小化">最小化</button>
+    <button class="btn btn-ghost btn-sm rounded-btn" aria-label="最大化">最大化</button>
+    <button class="btn btn-ghost btn-sm rounded-btn" aria-label="关闭">关闭</button>
+  </div>
+</div>
 
-  <form class="row" onsubmit={greet}>
-    <input id="greet-input" placeholder="Enter a name..." bind:value={name} />
-    <button type="submit">Greet</button>
-  </form>
-  <p>{greetMsg}</p>
+<main>
+  {#each tabs as tab (tab.id)}
+    {#if activeTab === tab.id}
+      <svelte:component 
+        this={getComponentForTab(tab.id)} 
+        tabId={tab.id} 
+        instance={getTabInstance(tab.id)}
+        mode={getTabInstance(tab.id).mode}
+      />
+    {/if}
+  {/each}
 </main>
 
 <style>
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
-}
-
-.logo.svelte-kit:hover {
-  filter: drop-shadow(0 0 2em #ff3e00);
-}
-
-:root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
-
-  color: #0f0f0f;
-  background-color: #f6f6f6;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
-}
-
-.container {
-  margin: 0;
-  padding-top: 10vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: 0.75s;
-}
-
-.logo.tauri:hover {
-  filter: drop-shadow(0 0 2em #24c8db);
-}
-
-.row {
-  display: flex;
-  justify-content: center;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-
-a:hover {
-  color: #535bf2;
-}
-
-h1 {
-  text-align: center;
-}
-
-input,
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  color: #0f0f0f;
-  background-color: #ffffff;
-  transition: border-color 0.25s;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
-}
-
-button {
-  cursor: pointer;
-}
-
-button:hover {
-  border-color: #396cd8;
-}
-button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
-}
-
-input,
-button {
-  outline: none;
-}
-
-#greet-input {
-  margin-right: 5px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #f6f6f6;
-    background-color: #2f2f2f;
-  }
-
-  a:hover {
-    color: #24c8db;
-  }
-
-  input,
-  button {
-    color: #ffffff;
-    background-color: #0f0f0f98;
-  }
-  button:active {
-    background-color: #0f0f0f69;
-  }
-}
 
 </style>
