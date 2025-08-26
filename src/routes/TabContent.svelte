@@ -20,7 +20,7 @@
 
 <div class="p-4">
   {#if mode === 'login'}
-    <Login />
+    <Login tabId={tabId} />
   {:else if mode === 'roomlist'}
     <RoomList />
   {:else}

@@ -1,14 +1,19 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
+  import { invoke } from "@tauri-apps/api/core";
+  
+  let { tabId } = $props();
   
   let ipAddress = $state("");
   let username = $state("");
   
-  function handleLogin() {
-    // 这里可以添加登录逻辑
-    console.log('IP地址:', ipAddress);
-    console.log('用户名:', username);
-    // 你可以在这里添加实际的登录处理代码
+  async function handleLogin() {
+    // 调用后端的Rust login函数
+    try {
+      let login_result = await invoke("login", { tabId, ip: ipAddress, name: username });
+      console.log("Login successful:", login_result);
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
   }
 </script>
 
