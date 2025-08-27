@@ -1,9 +1,7 @@
 <script>
-  export let tabId;
-  export let instance = {};
-  
+    let { tabId, instance = {}} = $props();
   // 使用instance对象来维护独立的状态
-  let inputValue = instance.value || '';
+  let inputValue = $state(instance.value || '');
   
   function handleInput(event) {
     inputValue = event.target.value;

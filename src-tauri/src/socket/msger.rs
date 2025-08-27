@@ -1,3 +1,5 @@
+use std::io::Read;
+
 use anyhow::{bail, Result};
 use strum_macros::{Display, EnumString};
 
@@ -273,4 +275,99 @@ fn write_utf(message: String) -> Vec<u8> {
     result.extend_from_slice(msg_bytes);
 
     result
+}
+/// 从 Java writeUTF 格式解码字符串
+pub fn read_utf(reader: &mut &[u8]) -> Result<Vec<String>> {
+    let mut results = Vec::new();
+    let mut first = 0;
+    loop {
+        let (utf8_len, s) = read_utf_first(&mut &reader[first..])?;
+        results.push(s);
+        first += utf8_len as usize;
+        if utf8_len == 0  || first >= reader.len() - 2 {
+            break;
+        }
+    }
+    
+    Ok(results)
+}
+
+fn read_utf_first(reader: &mut &[u8]) -> Result<(u32, String)> {
+
+    // 读取长度前缀（大端序）
+    let mut len_bytes = [0u8; 2];
+    reader.read_exact(&mut len_bytes)?;
+    let utf8_len = u16::from_be_bytes(len_bytes) as usize;
+    
+    // 读取 UTF-8 编码数据
+    let mut utf8_bytes = vec![0u8; utf8_len];
+    reader.read_exact(&mut utf8_bytes)?;
+    
+    // 解码修改版 UTF-8
+    let mut result = String::new();
+    let mut i = 0;
+    
+    while i < utf8_len {
+        let byte1 = utf8_bytes[i];
+        
+        // 单字节 ASCII (0xxxxxxx)
+        if byte1 & 0x80 == 0 {
+            if byte1 == 0 {
+                // 标准 UTF-8 中不应出现单字节 0，但在 Java 修改版中可能
+                result.push('\0');
+            } else {
+                result.push(byte1 as char);
+            }
+            i += 1;
+        }
+        // 双字节序列 (110xxxxx)
+        else if byte1 & 0xE0 == 0xC0 && i + 1 < utf8_len {
+            let byte2 = utf8_bytes[i + 1];
+            
+            // 检查是否为 Java 修改版 UTF-8 的 null 字符
+            if byte1 == 0xC0 && byte2 == 0x80 {
+                result.push('\0');
+                i += 2;
+                continue;
+            }
+            
+            // 常规双字节字符
+            if byte2 & 0xC0 == 0x80 {
+                let code_point = ((byte1 & 0x1F) as u16) << 6 | (byte2 & 0x3F) as u16;
+                if let Some(c) = char::from_u32(code_point as u32) {
+                    result.push(c);
+                } else {
+                    bail!("Invalid UTF-8 sequence");
+                }
+                i += 2;
+            } else {
+                 bail!("Invalid UTF-8 sequence");
+            }
+        }
+        // 三字节序列 (1110xxxx)
+        else if byte1 & 0xF0 == 0xE0 && i + 2 < utf8_len {
+            let byte2 = utf8_bytes[i + 1];
+            let byte3 = utf8_bytes[i + 2];
+            
+            if byte2 & 0xC0 == 0x80 && byte3 & 0xC0 == 0x80 {
+                let code_point = ((byte1 & 0x0F) as u32) << 12 
+                    | ((byte2 & 0x3F) as u32) << 6 
+                    | (byte3 & 0x3F) as u32;
+                
+                if let Some(c) = char::from_u32(code_point) {
+                    result.push(c);
+                } else {
+                    bail!("Invalid UTF-8 sequence");
+                }
+                i += 3;
+            } else {
+                 bail!("Invalid UTF-8 sequence");
+            }
+        }
+        else {
+            bail!("Invalid UTF-8 sequence");
+        }
+    }
+    
+    Ok(((utf8_len + 2) as u32, result))
 }

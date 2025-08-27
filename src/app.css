@@ -1,2 +1,19 @@
 @import "tailwindcss";
 @plugin "daisyui";
+
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+body {
+  overflow: hidden;
+  margin: 0;
+  min-height: 100vh;
+}

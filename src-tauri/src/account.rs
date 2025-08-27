@@ -4,5 +4,4 @@ pub struct Account {
     pub nick_name: String,
     pub chat_level: u8,
     pub other_user_info: String,
-
 }
