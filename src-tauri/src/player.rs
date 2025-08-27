@@ -78,6 +78,7 @@ impl PlayerSocket {
                     }
                     Err(e) => {
                         println!("{}", e);
+                        running_read.store(false, Ordering::Relaxed);
                     }
                 }
             }

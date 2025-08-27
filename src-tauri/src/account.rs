@@ -5,3 +5,4 @@ pub struct Account {
     pub chat_level: u8,
     pub other_user_info: String,
 }
+

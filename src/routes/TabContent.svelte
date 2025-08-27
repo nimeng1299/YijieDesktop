@@ -24,7 +24,7 @@
   {#if modes === 'login'}
     <Login tabId={tabId} />
   {:else if modes === 'roomlist'}
-    <RoomList data={roomdata} />
+    <RoomList datas={roomdata} />
   {:else}
     <input 
       type="text" 

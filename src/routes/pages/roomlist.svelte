@@ -1,37 +1,73 @@
 <script>
   // 接收传递的数据
-  let { data } = $props();
+  let { datas } = $props();
   
+  // 处理玩家信息
+  function append_player(data){
+    let str = "";
+    if (data.black_player === "-1") {
+      str += "暂无";
+    } else {
+      str += data.black_player;
+    }
+    str += "\tvs ";
+    if (data.white_player === "-1") {
+      str += "暂无";
+    } else {
+      str += data.white_player;
+    }
+    str += "\t";
+    str += data.player_num;
+    str += " / ";
+    str += data.max_player_num;
+    return str;
+  }
   // 房间列表组件逻辑
 </script>
 
-<div class="roomlist-container">
-  <h2>房间列表页面</h2>
-  <p>这是房间列表页面的内容</p>
-  
-  <!-- 显示传递的数据 -->
-  {#if data}
-    <div class="data-display">
-      <h3>接收到的数据:</h3>
-      <pre>{JSON.stringify(data, null, 2)}</pre>
-    </div>
-  {/if}
+<div class="roomlist-container border-solid">
+<div class="roomlist-layout">
+  <div class="left-section">
+    <!-- 左侧内容区域 -->
+     <ul class="list bg-base-100 rounded-box shadow-md">
+      <li class="p-4 pb-2 text-xs opacity-60 tracking-wide">房间列表</li>
+       {#each datas.rooms as data}
+          <li class="list-row">
+          <div>
+            <div>{data.name}</div>
+            <div class="text-xs uppercase font-semibold opacity-60">{append_player(data)}</div>
+          </div>
+          <p class="list-col-wrap text-xs">
+            {data.introduction}
+          </p>
+          <div class="flex justify-end">
+            <button class="btn btn-square btn-ghost">
+              <svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor"><path d="M6 3L20 12 6 21 6 3z"></path></g></svg>
+            </button>
+          </div>
+        </li>
+       {/each}
+     </ul>
+  </div>
+  <div class="right-section">
+    <!-- 右侧内容区域 -->
+  </div>
 </div>
-
+</div>
 <style>
+  .roomlist-layout {
+    display: flex;
+  }
+  .left-section {
+    width: 65%;
+  }
+  .right-section {
+    width: 35%;
+  }
+
   .roomlist-container {
-    padding: 20px;
+    padding: 0px;
+    width: 100%;
   }
   
-  .data-display {
-    margin-top: 20px;
-    padding: 10px;
-    background-color: #f0f0f0;
-    border-radius: 4px;
-  }
-  
-  pre {
-    white-space: pre-wrap;
-    word-wrap: break-word;
-  }
 </style>
