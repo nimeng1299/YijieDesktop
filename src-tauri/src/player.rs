@@ -10,7 +10,7 @@ use std::{
 
 use crate::{
     account::Account,
-    content::hall_room_list::HallRoomList,
+    content::{hall_room_list::HallRoomList, room::Room},
     listen,
     socket::msger::{self, Msger},
 };
@@ -141,6 +141,7 @@ pub struct Player {
     pub isLogin: bool,
 
     pub hall_room_list: HallRoomList,
+    pub room: Option<Room>
 }
 
 impl Player {
@@ -154,6 +155,7 @@ impl Player {
             account: Account::default(),
             isLogin: false,
             hall_room_list: HallRoomList::default(),
+            room: None,
         }
     }
 
@@ -182,6 +184,17 @@ impl Player {
                 println!("refresh room list {}", self.hall_room_list.rooms.len());
                 self.set_state(1);
             }
+            Msger::RefreshPlayerInfo => {
+                let account = Account::from_msg(msg)?;
+                self.account = account;
+                listen::change_account(self.app.clone(), self.tab_id, self.account.clone());
+            }
+            Msger::RefreshRoomInfo => {
+                if let Ok(room) = Room::from_msg(msg){
+                    listen::change_to_room(self.app.clone(), self.tab_id, room.clone());
+                    self.room = Some(room);
+                }
+            }
             _ => {
                 println!("--> read: {} type: {}", msg, msg_type);
             }
@@ -206,6 +219,16 @@ impl Player {
                 listen::change_to_hall(self.app.clone(), self.tab_id, self.hall_room_list.clone());
             }
             _ => {}
+        }
+    }
+
+    pub fn request_enter_room(&self, room_name:String) -> Result<()>{
+        if self.isLogin{
+            let msg = Msger::RequestEnterRoom.to_msg(room_name);
+            self.send(msg)?;
+            Ok(())
+        }else{
+            bail!("need login!")
         }
     }
 }

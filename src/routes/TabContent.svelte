@@ -1,5 +1,4 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
   import Login from './pages/login.svelte';
   import RoomList from './pages/roomlist.svelte';
   import { listen } from "@tauri-apps/api/event";
@@ -7,8 +6,22 @@
   let {tabId} = $props();
   let modes = $state("login");
   let roomdata = $state("");
+  let account =$state({
+    id_code: "",
+    nick_name: "",
+    chat_level: 0,
+    chat_tip: "",
+    other_user_info: "",
+  });
 
-  // 监听change_to_hall事件
+  listen("change_account", (event) => {
+    const [tabId_, account_] = event.payload;
+    if(tabId_ === tabId){
+      account = account_;
+    }
+
+  });
+
   listen('change_to_hall', (event) => {
     const [tabId_, roomList] = event.payload;
     console.log("change_to_hall", tabId_, roomList);
@@ -24,7 +37,7 @@
   {#if modes === 'login'}
     <Login tabId={tabId} />
   {:else if modes === 'roomlist'}
-    <RoomList datas={roomdata} />
+    <RoomList tab_id={tabId} datas={roomdata}  account={account} />
   {:else}
     <input 
       type="text" 

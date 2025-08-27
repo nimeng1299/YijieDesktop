@@ -1,6 +1,6 @@
 use tauri::Emitter;
 
-use crate::{content::hall_room_list::HallRoomList, tauris::tabs::Tabs};
+use crate::{account::Account, content::{hall_room_list::HallRoomList, room::Room}, tauris::tabs::Tabs};
 
 //标签发生修改
 #[tauri::command]
@@ -16,4 +16,14 @@ pub fn login_success(app: tauri::AppHandle,  tab_id: u32, name: String){
 #[tauri::command]
 pub fn change_to_hall(app: tauri::AppHandle, tab_id: u32, room_list: HallRoomList){
     app.emit("change_to_hall", (tab_id, room_list)).unwrap();
+}
+
+#[tauri::command]
+pub fn change_to_room(app: tauri::AppHandle, tab_id: u32, room: Room){
+    app.emit("change_to_room", (tab_id, room)).unwrap();
+}
+
+#[tauri::command]
+pub fn change_account(app: tauri::AppHandle, tab_id: u32, account: Account){
+    app.emit("change_account", (tab_id, account)).unwrap();
 }

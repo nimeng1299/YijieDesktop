@@ -18,8 +18,12 @@ pub fn run() {
             command::close_tab,
             command::login, 
             command::close, 
+            command::request_enter_room,
             listen::login_success,
             listen::change_tabs,
+            listen::change_to_hall,
+            listen::change_to_room,
+            listen::change_account,
             ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

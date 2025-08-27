@@ -32,7 +32,7 @@ pub fn close_tab(tab_id: u32){
 #[tauri::command]
 pub fn login(app: tauri::AppHandle, tab_id: u32, ip: &str, name: &str) -> Result<(), String> {
     if PLAYER_MAP.contains_key(&tab_id) {
-        return Err("player already exists".to_string());
+        PLAYER_MAP.remove(&tab_id);
     }
     let mut player_socket = player::PlayerSocket::connect(app, tab_id, ip).map_err(|e| e.to_string())?;
     
@@ -84,3 +84,12 @@ pub fn close(tab_id: u32) -> Result<(), String> {
     Ok(())
 }
 
+#[tauri::command]
+pub fn request_enter_room(tab_id: u32, room_name:&str) -> Result<(), String>{
+    if let Some(player_socket) = PLAYER_MAP.get(&tab_id){
+        player_socket.get_player().map_err(|e| e.to_string())?.request_enter_room(room_name.to_string()).map_err(|e| e.to_string())?;
+        Ok(())
+    }else{
+        Err("player not exists".to_string())
+    }
+}

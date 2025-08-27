@@ -1,7 +1,9 @@
 use anyhow::{bail, Result};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default, Serialize, Clone)]
+use crate::content::room::RoomStatus;
+
+#[derive(Debug, Default, Serialize, Clone, Deserialize)]
 pub struct HallRoomList {
     pub rooms: Vec<HallRoom>,
 }
@@ -28,7 +30,7 @@ impl HallRoomList {
 
 }
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Clone, Deserialize)]
 pub struct HallRoom {
     pub name: String,
     pub black_player: String,
@@ -63,24 +65,3 @@ impl HallRoom {
     }
 }
 
-#[derive(Debug, Serialize, Clone, Copy)]
-#[repr(i8)]
-pub enum RoomStatus{
-    Empty = 0,
-    NeedBlack = 1,
-    NeedWhite = 2,
-    Playing = 3,
-    Unknow = -1,
-}
-
-impl RoomStatus {
-    pub fn from_i8(status: i8) -> Self {
-        match status {
-            0 => Self::Empty,
-            1 => Self::NeedBlack,
-            2 => Self::NeedWhite,
-            3 => Self::Playing,
-            _ => Self::Unknow,
-        }
-    }
-}
