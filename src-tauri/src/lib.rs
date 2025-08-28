@@ -24,6 +24,7 @@ pub fn run() {
             listen::change_to_hall,
             listen::change_to_room,
             listen::change_account,
+            listen::update_game,
             ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

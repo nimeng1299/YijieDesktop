@@ -1,6 +1,6 @@
 use tauri::Emitter;
 
-use crate::{account::Account, content::{hall_room_list::HallRoomList, room::Room}, tauris::tabs::Tabs};
+use crate::{account::Account, content::{game::Game, hall_room_list::HallRoomList, room::Room}, tauris::tabs::Tabs};
 
 //标签发生修改
 #[tauri::command]
@@ -26,4 +26,9 @@ pub fn change_to_room(app: tauri::AppHandle, tab_id: u32, room: Room){
 #[tauri::command]
 pub fn change_account(app: tauri::AppHandle, tab_id: u32, account: Account){
     app.emit("change_account", (tab_id, account)).unwrap();
+}
+
+#[tauri::command]
+pub fn update_game(app: tauri::AppHandle, tab_id: u32, game: Game){
+    app.emit("update_game", (tab_id, game)).unwrap();
 }

@@ -10,7 +10,7 @@ use std::{
 
 use crate::{
     account::Account,
-    content::{hall_room_list::HallRoomList, room::Room},
+    content::{game::Game, hall_room_list::HallRoomList, room::Room},
     listen,
     socket::msger::{self, Msger},
 };
@@ -141,7 +141,8 @@ pub struct Player {
     pub isLogin: bool,
 
     pub hall_room_list: HallRoomList,
-    pub room: Option<Room>
+    pub room: Option<Room>,
+    pub game: Option<Game>,
 }
 
 impl Player {
@@ -156,6 +157,7 @@ impl Player {
             isLogin: false,
             hall_room_list: HallRoomList::default(),
             room: None,
+            game: None,
         }
     }
 
@@ -190,9 +192,25 @@ impl Player {
                 listen::change_account(self.app.clone(), self.tab_id, self.account.clone());
             }
             Msger::RefreshRoomInfo => {
-                if let Ok(room) = Room::from_msg(msg){
-                    listen::change_to_room(self.app.clone(), self.tab_id, room.clone());
-                    self.room = Some(room);
+              match Room::from_msg(msg){
+                    Ok(room) => {
+                        listen::change_to_room(self.app.clone(), self.tab_id, room.clone());
+                        self.room = Some(room);
+                    }
+                    Err(e) => {
+                        println!("change_to_room error: {}", e);
+                    }
+                }
+            }
+            Msger::RefreshGameInfo => {
+                match Game::from_msg(msg){
+                    Ok(game) => {
+                        listen::update_game(self.app.clone(), self.tab_id, game.clone());
+                        self.game = Some(game);
+                    }
+                    Err(e) => {
+                        println!("update_game error: {}", e);
+                    }
                 }
             }
             _ => {

@@ -9,7 +9,7 @@ pub struct Board{
 }
 
 impl Board{
-    pub fn to_str(str: String) -> Self{
+    pub fn from_msg(str: String) -> Self{
         let mut pieces = Vec::new();
         let rows:Vec<&str> = str.split("r").collect();
         let rows_len = rows.len();

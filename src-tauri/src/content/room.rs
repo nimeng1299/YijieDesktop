@@ -23,11 +23,11 @@ impl Room{
                 black_player: msgs[1].to_string(),
                 white_player: msgs[2].to_string(),
                 status: RoomStatus::from_i8(msgs[3].parse()?),
-                spectator: msgs[4].split(',').map(|s| s.to_string()).collect(),
-                player_num: msgs[5].parse()?,
-                max_player_num: msgs[6].parse()?,
-                is_forbid_chat: msgs[7].parse().unwrap_or(true),
-                other: msgs[8].to_string(),
+                spectator: msgs[5].split(',').map(|s| s.to_string()).collect(),
+                player_num: msgs[6].parse()?,
+                max_player_num: msgs[7].parse()?,
+                is_forbid_chat: msgs[8].parse().unwrap_or(true),
+                other: msgs[9].to_string(),
             })
         } else {
             bail!("room msg error")

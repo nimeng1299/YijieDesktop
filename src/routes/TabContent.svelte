@@ -1,4 +1,5 @@
 <script>
+    import Game from './pages/game.svelte';
   import Login from './pages/login.svelte';
   import RoomList from './pages/roomlist.svelte';
   import { listen } from "@tauri-apps/api/event";
@@ -12,6 +13,18 @@
     chat_level: 0,
     chat_tip: "",
     other_user_info: "",
+  });
+  let room = $state({
+    name: "",
+    introduction: "",
+    black_player: "",
+    white_player: "",
+    status: 0,
+    spectator: [],
+    player_num: 0,
+    max_player_num: 0,
+    is_forbid_chat: true,
+    other: "",
   });
 
   listen("change_account", (event) => {
@@ -31,6 +44,16 @@
       roomdata = roomList;
     }
   });
+
+  listen('change_to_room', (event) => {
+    const [tabId_, room_] = event.payload;
+    console.log("change_to_room", tabId_, room_);
+    // 更新对应tab的mode和数据
+    if (tabId === tabId_) {
+      modes = "game";
+      room = room_;
+    }
+  });
 </script>
 
 <div class="p-4">
@@ -38,6 +61,8 @@
     <Login tabId={tabId} />
   {:else if modes === 'roomlist'}
     <RoomList tab_id={tabId} datas={roomdata}  account={account} />
+  {:else if modes === 'game'}
+    <Game tabId={tabId} room={room} />
   {:else}
     <input 
       type="text" 
