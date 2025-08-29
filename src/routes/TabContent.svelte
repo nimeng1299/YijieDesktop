@@ -26,6 +26,16 @@
     is_forbid_chat: true,
     other: "",
   });
+  let game = $state({
+    step: 0,
+    current_player: 0,
+    black_score: -1,
+    white_score: -1,
+    game_tip: "",
+    board: [],
+    sign: [],
+    coord_mode: "31000000",
+  });
 
   listen("change_account", (event) => {
     const [tabId_, account_] = event.payload;
@@ -45,7 +55,7 @@
     }
   });
 
-  listen('change_to_room', (event) => {
+    listen('change_to_room', (event) => {
     const [tabId_, room_] = event.payload;
     console.log("change_to_room", tabId_, room_);
     // 更新对应tab的mode和数据
@@ -54,15 +64,25 @@
       room = room_;
     }
   });
+
+  listen('update_game', (event) => {
+    const [tabId_, game_] = event.payload;
+    console.log("update_game", tabId_, game_);
+    // 更新对应tab的mode和数据
+    if (tabId === tabId_) {
+      game = game_;
+    }
+  });
+
 </script>
 
-<div class="p-4">
+<div class="p-4 ">
   {#if modes === 'login'}
     <Login tabId={tabId} />
   {:else if modes === 'roomlist'}
     <RoomList tab_id={tabId} datas={roomdata}  account={account} />
   {:else if modes === 'game'}
-    <Game tabId={tabId} room={room} />
+    <Game tabId={tabId} room={room} game={game} />
   {:else}
     <input 
       type="text" 

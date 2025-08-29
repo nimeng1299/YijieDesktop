@@ -51,7 +51,7 @@
           ✕
         </button>
       </label>
-      <div class="tab-content bg-base-100 p-10 w-full h-full">
+      <div class="tab-content bg-base-100 w-full h-full">
         {#if tab.mode === "main"}
           <TabContent tabId={tab.id} />
         {/if}
