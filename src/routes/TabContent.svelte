@@ -36,6 +36,10 @@
     sign: [],
     coord_mode: "31000000",
   });
+  let countdown = $state([0, 0]);
+
+  let buttons = $state([]);
+  let can_move = $state(false);
 
   listen("change_account", (event) => {
     const [tabId_, account_] = event.payload;
@@ -74,6 +78,42 @@
     }
   });
 
+  listen('dispatch_custom_bottom', (event) => {
+    const [tabId_, buttons_] = event.payload;
+    console.log("dispatch_custom_bottom", tabId_, buttons_);
+    // 更新对应tab的mode和数据
+    if (tabId === tabId_ && buttons_[0] !== "-1") {
+      buttons = buttons_;
+    }
+  });
+
+  listen('refresh_countdown', (event) => {
+    const [tabId_, countdown_] = event.payload;
+    console.log("refresh_countdown", tabId_, countdown_);
+    // 更新对应tab的mode和数据
+    if (tabId === tabId_) {
+      countdown = countdown_;
+    }
+  });
+
+  listen('you_can_move', (event) => {
+    console.log("you_can_move");
+    const tabId_ = event.payload;
+    // 更新对应tab的mode和数据
+    if (tabId === tabId_) {
+      can_move = true;
+    }
+  });
+
+  listen('you_not_move', (event) => {
+    console.log("you_not_move");
+    const tabId_ = event.payload;
+    // 更新对应tab的mode和数据
+    if (tabId === tabId_) {
+      can_move = false;
+    }
+  });
+
 </script>
 
 <div class="p-4 ">
@@ -82,7 +122,7 @@
   {:else if modes === 'roomlist'}
     <RoomList tab_id={tabId} datas={roomdata}  account={account} />
   {:else if modes === 'game'}
-    <Game tabId={tabId} room={room} game={game} />
+    <Game tabId={tabId} room={room} game={game} buttons={buttons} countdown={countdown} can_move={can_move} />
   {:else}
     <input 
       type="text" 

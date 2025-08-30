@@ -1772,6 +1772,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
 
 [[package]]
+name = "java_string"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0d0461dddd3d35f7c2b7d871f4de8f721ab806e39d3fcc27dca9bffd058d1b71"
+
+[[package]]
 name = "javascriptcore-rs"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5050,6 +5056,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "dashmap",
+ "java_string",
  "lazy_static",
  "serde",
  "serde_json",

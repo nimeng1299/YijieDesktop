@@ -87,6 +87,8 @@
   }
   .left-section {
     width: 65%;
+    max-height: 90vh; /* 设置最大高度 */
+    overflow-y: auto; /* 添加垂直滚动条 */
   }
   .right-section {
     width: 35%;

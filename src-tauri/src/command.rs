@@ -1,7 +1,7 @@
 use dashmap::DashMap;
 use lazy_static::lazy_static;
 
-use crate::{player, tauris::{base, tabs::TABS}};
+use crate::{player, socket::msger::Msger, tauris::{base, tabs::TABS}};
 
 lazy_static!{
     pub static ref PLAYER_MAP: DashMap<u32, player::PlayerSocket> = DashMap::new();
@@ -88,6 +88,60 @@ pub fn close(tab_id: u32) -> Result<(), String> {
 pub fn request_enter_room(tab_id: u32, room_name:&str) -> Result<(), String>{
     if let Some(player_socket) = PLAYER_MAP.get(&tab_id){
         player_socket.get_player().map_err(|e| e.to_string())?.request_enter_room(room_name.to_string()).map_err(|e| e.to_string())?;
+        Ok(())
+    }else{
+        Err("player not exists".to_string())
+    }
+}
+
+#[tauri::command]
+pub fn request_be_chess_player(tab_id: u32, side:&str) -> Result<(), String>{
+    if let Some(player_socket) = PLAYER_MAP.get(&tab_id){
+        player_socket.get_player().map_err(|e| e.to_string())?.send(Msger::RequestBeChessPlayer.to_msg(side.to_string())).map_err(|e|e.to_string())?;
+        Ok(())
+    }else{
+        Err("player not exists".to_string())
+    }
+}
+
+//让座
+#[tauri::command]
+pub fn request_leave_seat(tab_id: u32) -> Result<(), String>{
+    if let Some(player_socket) = PLAYER_MAP.get(&tab_id){
+        player_socket.get_player().map_err(|e| e.to_string())?.send(Msger::RequestLeaveSeat.to_msg("Ok".to_string())).map_err(|e|e.to_string())?;
+        Ok(())
+    }else{
+        Err("player not exists".to_string())
+    }
+}
+
+//认输
+#[tauri::command]
+pub fn request_admit_defeat(tab_id: u32) -> Result<(), String>{
+    if let Some(player_socket) = PLAYER_MAP.get(&tab_id){
+        player_socket.get_player().map_err(|e| e.to_string())?.send(Msger::RequestAdmitDefeat.to_msg("Ok".to_string())).map_err(|e|e.to_string())?;
+        Ok(())
+    }else{
+        Err("player not exists".to_string())
+    }
+}
+
+//按钮requestCustomBottomEvent
+#[tauri::command]
+pub fn request_custom_bottom_event(tab_id: u32, event: &str) -> Result<(), String>{
+    if let Some(player_socket) = PLAYER_MAP.get(&tab_id){
+        player_socket.get_player().map_err(|e| e.to_string())?.send(Msger::RequestCustomBottomEvent.to_msg(event.to_string())).map_err(|e|e.to_string())?;
+        Ok(())
+    }else{
+        Err("player not exists".to_string())
+    }
+}
+
+//落子
+#[tauri::command]
+pub fn request_move_later(tab_id: u32, x: u32, y: u32) -> Result<(), String>{
+    if let Some(player_socket) = PLAYER_MAP.get(&tab_id){
+        player_socket.get_player().map_err(|e| e.to_string())?.send(Msger::RequestMoveLater.to_msg(format!("{},{}", x, y))).map_err(|e|e.to_string())?;
         Ok(())
     }else{
         Err("player not exists".to_string())

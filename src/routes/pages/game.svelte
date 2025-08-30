@@ -1,22 +1,27 @@
 <script>
     import GameBoard from "./GameBoard.svelte";
+    import GameButtons from "./GameButtons.svelte";
     import GameCard from "./GameCard.svelte";
+    import GameSpectator from "./GameSpectator.svelte";
 
-      let {tabId, room, game} = $props();
+      let {tabId, room, game, buttons, countdown, can_move} = $props();
 </script>
 <div class="game-container ">
   <div class="game-left">
     <div class="gamecard">
-      <GameCard player={room.black_player} score={game.black_score} />
+      <GameCard tabId={tabId} player={room.black_player} score={game.black_score} side="black" countdown={countdown[0] + Date.now() / 1000} />
     </div>
     <div class="gamecard">
-      <GameCard player={room.white_player} score={game.white_score} />
+      <GameCard tabId={tabId} player={room.white_player} score={game.white_score} side="white" countdown={countdown[1] + Date.now() / 1000} />
     </div>
   </div>
   <div class="game-middle">
-    <GameBoard game={game} />
+    <GameBoard tabId={tabId} game={game} can_move={can_move} />
   </div>
-  <div class="game-right">右侧</div>
+  <div class="game-right">
+    <GameSpectator room_name={room.name} spectator={room.spectator}></GameSpectator>
+    <GameButtons tabId={tabId} buttons={buttons}></GameButtons>
+  </div>
 </div>
 
 <style>

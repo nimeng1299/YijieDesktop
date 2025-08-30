@@ -6,6 +6,7 @@ use std::{
     },
     thread,
     time::Duration,
+    collections::VecDeque,
 };
 
 use crate::{
@@ -15,6 +16,7 @@ use crate::{
     socket::msger::{self, Msger},
 };
 use anyhow::{anyhow, bail, Result};
+use java_string::JavaString;
 use std::net::TcpStream;
 
 pub struct PlayerSocket {
@@ -37,9 +39,13 @@ impl PlayerSocket {
         let player = Arc::new(Mutex::new(Player::new(send_tx, tab_id, app)));
         let player_read = Arc::clone(&player);
         let player_keeplive = Arc::clone(&player);
+        
 
         let read_thread = thread::spawn(move || {
-            let mut buffer = [0; 512];
+            let mut buffer = [0; 1024]; // Temporary buffer for reading from socket
+            let mut can_start = false;
+            let mut data_len = 0;
+            let mut datas: VecDeque<u8> = VecDeque::new();
             while running_read.load(Ordering::Relaxed) {
                 match read_stream.read(&mut buffer) {
                     Ok(0) => {
@@ -47,29 +53,35 @@ impl PlayerSocket {
                         break;
                     }
                     Ok(n) => {
-                        let mut start = 0;
-                        let mut end = n;
-                        println!("read: {:?}", &buffer[0..n]);
+                        println!("read: {} bytes", n);
+                        datas.extend(&buffer[0..n]);
 
-                        match msger::read_utf(&mut &buffer[0..n]) {
-                            Ok(msg) => {
-                                for s in msg {
-                                    println!("msg: {}", s);
-
+                        if !can_start && datas.len() > 2 {
+                            let len_datas = datas.drain(..2).collect::<Vec<u8>>();
+                            data_len = u16::from_be_bytes([len_datas[0], len_datas[1]]) as usize;
+                            println!("data_len: {}. let_datas: {:?}", data_len, len_datas);
+                            can_start = true;
+                        }
+                        if can_start && datas.len() >= data_len {
+                            let msg_datas = datas.drain(..data_len).collect::<Vec<u8>>();
+                            match JavaString::from_modified_utf8(msg_datas) {
+                                Ok(java_str) => {
+                                    println!("java_str: {}", java_str);
                                     let mut player = player_read.lock().unwrap();
-                                    match player.read(s.trim().to_string()) {
+                                    match player.read(java_str.trim().to_string()) {
                                         Ok(_) => {}
                                         Err(e) => {
                                             println!("read error: {}", e);
                                         }
                                     }
                                 }
+                                Err(e) => {
+                                    println!("from_modified_utf8 error: {}", e);
+                                }
                             }
-
-                            Err(e) => {
-                                println!("read_utf error: {}", e);
-                            }
+                            can_start = false;
                         }
+                        
                     }
 
                     Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
@@ -212,6 +224,21 @@ impl Player {
                         println!("update_game error: {}", e);
                     }
                 }
+            }
+            Msger::DispatchCustomBottom =>{
+                let buttons: Vec<String> = msg.split(';').map(|s| s.to_string()).collect();
+                listen::dispatch_custom_bottom(self.app.clone(), self.tab_id, buttons);
+            }
+            Msger::RefreshCountdown => {
+                let countdown: Vec<&str> = msg.split('&').collect();
+                let countdown = (countdown[0].parse()?, countdown[1].parse()?);
+                listen::refresh_countdown(self.app.clone(), self.tab_id, countdown);
+            }
+            Msger::YouCanMove => {
+                listen::you_can_move(self.app.clone(), self.tab_id);
+            }
+            Msger::YouNotMove => {
+                listen::you_not_move(self.app.clone(), self.tab_id);
             }
             _ => {
                 println!("--> read: {} type: {}", msg, msg_type);

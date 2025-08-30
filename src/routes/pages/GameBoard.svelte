@@ -1,5 +1,7 @@
 <script>
-    let {game} = $props();
+    import { invoke } from "@tauri-apps/api/core";
+
+    let {tabId, game, can_move} = $props();
     let {finalWidth} = $state(0);
     let {canvasWidth} = $state(0);
     let {board_x} = $state(0);
@@ -15,9 +17,11 @@
         }else if (mode === "2") {
             return String.fromCharCode(64 + len - i);
         }else if (mode === "3") {
-            return String.fromCharCode(48 + i);
+            let num = i ;
+            return num.toString();
         }else if (mode === "4") {
-            return String.fromCharCode(48 + len - i);
+            let num = len - i;
+            return num.toString();
         }else if (mode === "5") {
             return String.fromCharCode(19968 + i);  
         }else if (mode === "6") {
@@ -46,7 +50,7 @@
         const boardHeight = boardDiv.clientHeight;
         canvasWidth = Math.min(boardWidth, boardHeight);
         
-        ctx.clearRect(0, 0, canvasWidth, canvasWidth);  
+        ctx.clearRect(0, 0, boardWidth, boardHeight);  
 
         let game_board = game.board;
         let cols_len = game_board.cols_len; //多少列
@@ -144,6 +148,7 @@
                 ctx.fillText(getText(i, rows_len, game.coord_mode[2]),  (col_count + cols_len) * finalWidth + Math.round(finalWidth / 2), i * finalWidth +  Math.round(finalWidth / 2));
             }
         }
+        ctx.save();
 
         //绘制棋盘
         board_x = col_count * finalWidth;
@@ -366,11 +371,13 @@
                 }
             }
         }
+        ctx.stroke();
     }
     
     // 监听game变量变化并触发绘制
     $effect(() => {
-        console.log('Board changed:', game);
+        if (!game) return;
+        console.log("draw");
         draw();
     });
     
@@ -395,10 +402,27 @@
             }
         };
     });
+
+    // 点击事件
+    function handleClick(e) {
+        console.log("can move", can_move);
+        if(!can_move) return;
+        const rect = canvas?.getBoundingClientRect();
+        if (!rect) return;
+        
+        const x = Math.floor((e.clientX - rect.left - board_x) / finalWidth);
+        const y = Math.floor((e.clientY - rect.top - board_y) / finalWidth);
+        console.log(rect, e,  x, y, board_x, board_y, finalWidth);
+        if (x >= 0 && y >= 0 && x < game.board.cols_len && y < game.board.rows_len) {
+            //x y反过来
+            invoke("request_move_later", {tabId: tabId, x: y, y: x});
+        }
+    }
+
 </script>
 
 <div class="board">
-    <canvas bind:this={canvas} width={canvasWidth} height={canvasWidth}></canvas>
+    <canvas bind:this={canvas} width={canvasWidth} height={canvasWidth} onclick={handleClick}></canvas>
 </div>
 
 <style>

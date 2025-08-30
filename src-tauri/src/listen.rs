@@ -32,3 +32,25 @@ pub fn change_account(app: tauri::AppHandle, tab_id: u32, account: Account){
 pub fn update_game(app: tauri::AppHandle, tab_id: u32, game: Game){
     app.emit("update_game", (tab_id, game)).unwrap();
 }
+
+#[tauri::command]
+pub fn dispatch_custom_bottom(app: tauri::AppHandle, tab_id: u32, buttons: Vec<String>){
+    app.emit("dispatch_custom_bottom", (tab_id, buttons)).unwrap();
+}
+
+#[tauri::command]
+pub fn refresh_countdown(app: tauri::AppHandle, tab_id: u32, countdown: (i32, i32)){
+    app.emit("refresh_countdown", (tab_id, countdown)).unwrap();
+}
+
+#[tauri::command]
+pub fn you_can_move(app: tauri::AppHandle, tab_id: u32){
+    println!("you_can_move");
+    app.emit("you_can_move", tab_id).unwrap();
+}
+
+#[tauri::command]
+pub fn you_not_move(app: tauri::AppHandle, tab_id: u32){
+    println!("you_not_move");
+    app.emit("you_not_move", tab_id).unwrap();
+}

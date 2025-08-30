@@ -19,12 +19,21 @@ pub fn run() {
             command::login, 
             command::close, 
             command::request_enter_room,
+            command::request_be_chess_player,
+            command::request_leave_seat,
+            command::request_admit_defeat,
+            command::request_custom_bottom_event,
+            command::request_move_later,
             listen::login_success,
             listen::change_tabs,
             listen::change_to_hall,
             listen::change_to_room,
             listen::change_account,
             listen::update_game,
+            listen::dispatch_custom_bottom,
+            listen::refresh_countdown,
+            listen::you_can_move,
+            listen::you_not_move,
             ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
