@@ -10,3 +10,4 @@ This template should help get you started developing with Tauri, SvelteKit and T
 
 1. figure_sign
 2. pieces > 17
+3. 富文本
