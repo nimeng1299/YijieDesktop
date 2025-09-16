@@ -31,6 +31,23 @@
         }
     }
 
+    //转换回坐标
+    function toIndex(index, row, col) {
+        return [index % col, Math.floor(index / row)];
+    }
+
+    function convertColorFormat(colorStr) {
+        // 假设输入格式为 #AARRGGBB
+        if (colorStr.length !== 9) {
+            throw new Error("Invalid color format");
+        }
+        const aa = colorStr.substring(1, 3);
+        const rr = colorStr.substring(3, 5);
+        const gg = colorStr.substring(5, 7);
+        const bb = colorStr.substring(7, 9);
+        return `#${rr}${gg}${bb}${aa}`;
+    }
+
     // 绘制函数
     function draw() {
         if (!canvas || !game) return;
@@ -207,6 +224,37 @@
                 board_y + rows_len * finalWidth,
             );
         }
+        ctx.stroke();
+
+        //绘制sign
+        ctx.save();
+
+        for (const item of game.sign) {
+            let [k, ..._] = Object.keys(item);
+            let v = item[k];
+            if (k === "AroundSign") {
+            } else if (k === "BadgeSign") {
+            } else if (k === "CacheSign") {
+            } else if (k === "ColorSign") {
+                ctx.fillStyle = convertColorFormat(v.color);
+                for (const index of v.indexes) {
+                    let [x, y] = toIndex(index, rows_len, cols_len);
+                    ctx.fillRect(
+                        x * finalWidth + board_x,
+                        y * finalWidth + board_y,
+                        finalWidth,
+                        finalWidth,
+                    );
+                }
+            } else if (k === "FigureSign") {
+            } else if (k === "GroundSign") {
+            } else if (k === "LineSign") {
+            } else if (k === "PathSign") {
+            } else if (k === "TextSign") {
+            } else if (k === "TitleSign") {
+            }
+        }
+
         ctx.stroke();
 
         //绘制棋子
@@ -697,26 +745,6 @@
                 }
             }
         }
-        ctx.stroke();
-
-        //绘制sign
-        ctx.save();
-
-        for (const item of game.sign) {
-            let [k, ..._] = Object.keys(item);
-            if (k === "AroundSign") {
-            } else if (k === "BadgeSign") {
-            } else if (k === "CacheSign") {
-            } else if (k === "ColorSign") {
-            } else if (k === "FigureSign") {
-            } else if (k === "GroundSign") {
-            } else if (k === "LineSign") {
-            } else if (k === "PathSign") {
-            } else if (k === "TextSign") {
-            } else if (k === "TitleSign") {
-            }
-        }
-
         ctx.stroke();
     }
 
