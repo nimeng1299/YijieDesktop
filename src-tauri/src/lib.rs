@@ -1,12 +1,10 @@
-pub mod player;
 pub mod account;
-pub mod socket;
 pub mod command;
-pub mod listen;
 pub mod content;
+pub mod listen;
+pub mod player;
+pub mod socket;
 pub mod tauris;
-
-
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -16,14 +14,15 @@ pub fn run() {
             command::init_app,
             command::add_tab_main,
             command::close_tab,
-            command::login, 
-            command::close, 
+            command::login,
+            command::close,
             command::request_enter_room,
             command::request_be_chess_player,
             command::request_leave_seat,
             command::request_admit_defeat,
             command::request_custom_bottom_event,
             command::request_move_later,
+            listen::show_toast,
             listen::login_success,
             listen::change_tabs,
             listen::change_to_hall,
@@ -34,7 +33,7 @@ pub fn run() {
             listen::refresh_countdown,
             listen::you_can_move,
             listen::you_not_move,
-            ])
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

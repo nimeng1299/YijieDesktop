@@ -2,6 +2,7 @@ use dashmap::DashMap;
 use lazy_static::lazy_static;
 
 use crate::{
+    listen::show_toast,
     player,
     socket::msger::Msger,
     tauris::{base, tabs::TABS},
@@ -80,6 +81,7 @@ pub fn login(app: tauri::AppHandle, tab_id: u32, ip: &str, name: &str) -> Result
         return Err("login failed".to_string());
     }
     PLAYER_MAP.insert(tab_id, player_socket);
+    show_toast("登录成功", "success");
     Ok(())
 }
 
