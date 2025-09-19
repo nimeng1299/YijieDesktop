@@ -1,9 +1,12 @@
-use crate::content::{board::Board, sign::{sign_derialize, SignType}};
+use crate::content::{
+    board::Board,
+    sign::{sign_derialize, SignType},
+};
 use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Clone, Deserialize)]
-pub struct Game{
+#[derive(Debug, Default, Serialize, Clone, Deserialize)]
+pub struct Game {
     step: i32,
     current_player: i32,
     black_score: i32,
@@ -14,11 +17,11 @@ pub struct Game{
     coord_mode: String,
 }
 
-impl Game{
-    pub fn from_msg(msg: String) -> Result<Self>{
+impl Game {
+    pub fn from_msg(msg: String) -> Result<Self> {
         let datas: Vec<&str> = msg.split('&').collect();
         if datas.len() == 8 {
-            let game = Self{
+            let game = Self {
                 step: datas[0].parse()?,
                 current_player: datas[1].parse()?,
                 black_score: datas[2].parse()?,
@@ -29,9 +32,8 @@ impl Game{
                 coord_mode: datas[7].to_string(),
             };
             Ok(game)
-        }else{
+        } else {
             bail!("数据格式错误, 数据长度: {}", datas.len())
         }
     }
 }
-

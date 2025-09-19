@@ -1,8 +1,8 @@
 use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Clone, Deserialize)]
-pub struct Room{
+#[derive(Debug, Default, Serialize, Clone, Deserialize)]
+pub struct Room {
     pub name: String,
     pub black_player: String,
     pub white_player: String,
@@ -11,14 +11,14 @@ pub struct Room{
     pub player_num: u8,
     pub max_player_num: u8,
     pub is_forbid_chat: bool, //是否禁用聊天
-    pub other: String, // 其他信息
+    pub other: String,        // 其他信息
 }
 
-impl Room{
+impl Room {
     pub fn from_msg(msg: String) -> Result<Self> {
         let msgs: Vec<&str> = msg.split('&').collect();
-        if msgs.len() == 10{
-            Ok(Self{
+        if msgs.len() == 10 {
+            Ok(Self {
                 name: msgs[0].to_string(),
                 black_player: msgs[1].to_string(),
                 white_player: msgs[2].to_string(),
@@ -37,7 +37,7 @@ impl Room{
 
 #[derive(Debug, Serialize, Clone, Copy, Deserialize)]
 #[repr(i8)]
-pub enum RoomStatus{
+pub enum RoomStatus {
     Empty = 0,
     NeedBlack = 1,
     NeedWhite = 2,
@@ -54,5 +54,11 @@ impl RoomStatus {
             3 => Self::Playing,
             _ => Self::Unknow,
         }
+    }
+}
+
+impl Default for RoomStatus {
+    fn default() -> Self {
+        Self::Empty
     }
 }
