@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     account::Account,
     content::{game::Game, hall_room_list::HallRoomList, room::Room},
+    listen,
 };
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -15,6 +16,17 @@ pub struct TabData {
     countdown: (i32, i32),
     buttons: Vec<String>,
     can_move: bool,
+}
+
+impl TabData {
+    pub fn change_to_hall(&mut self, app: tauri::AppHandle, tab_id: u32, room_list: HallRoomList) {
+        self.roomdata = room_list.clone();
+        listen::change_to_hall(app, tab_id, room_list);
+    }
+    pub fn change_account(&mut self, app: tauri::AppHandle, tab_id: u32, account: Account) {
+        self.account = account.clone();
+        listen::change_account(app, tab_id, account);
+    }
 }
 
 impl Default for TabData {

@@ -1,4 +1,5 @@
 use std::{
+    collections::VecDeque,
     io::{Read, Write},
     sync::{
         atomic::{AtomicBool, Ordering},
@@ -6,7 +7,6 @@ use std::{
     },
     thread,
     time::Duration,
-    collections::VecDeque,
 };
 
 use crate::{
@@ -14,6 +14,7 @@ use crate::{
     content::{game::Game, hall_room_list::HallRoomList, room::Room},
     listen,
     socket::msger::{self, Msger},
+    tauris::do_tab_datas,
 };
 use anyhow::{anyhow, bail, Result};
 use java_string::JavaString;
@@ -39,7 +40,6 @@ impl PlayerSocket {
         let player = Arc::new(Mutex::new(Player::new(send_tx, tab_id, app)));
         let player_read = Arc::clone(&player);
         let player_keeplive = Arc::clone(&player);
-        
 
         let read_thread = thread::spawn(move || {
             let mut buffer = [0; 1024]; // Temporary buffer for reading from socket
@@ -81,7 +81,6 @@ impl PlayerSocket {
                             }
                             can_start = false;
                         }
-                        
                     }
 
                     Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
@@ -147,12 +146,9 @@ pub struct Player {
 
     app: tauri::AppHandle,
     tab_id: u32,
-    state: u8, //状态： 0登录界面 1大厅 2房间
 
-    pub account: Account,
     pub isLogin: bool,
 
-    pub hall_room_list: HallRoomList,
     pub room: Option<Room>,
     pub game: Option<Game>,
 }
@@ -163,11 +159,8 @@ impl Player {
             send_tx,
             isConnected: false,
             tab_id,
-            state: 0,
             app,
-            account: Account::default(),
             isLogin: false,
-            hall_room_list: HallRoomList::default(),
             room: None,
             game: None,
         }
@@ -194,38 +187,36 @@ impl Player {
             }
             Msger::RefreshRoomList => {
                 let room_list = HallRoomList::from_string(msg);
-                self.hall_room_list = room_list;
-                println!("refresh room list {}", self.hall_room_list.rooms.len());
-                self.set_state(1);
+                println!("refresh room list {}", room_list.rooms.len());
+                do_tab_datas(self.tab_id, |data| {
+                    data.change_to_hall(self.app.clone(), self.tab_id, room_list);
+                });
             }
             Msger::RefreshPlayerInfo => {
                 let account = Account::from_msg(msg)?;
-                self.account = account;
-                listen::change_account(self.app.clone(), self.tab_id, self.account.clone());
+                do_tab_datas(self.tab_id, |data| {
+                    data.change_account(self.app.clone(), self.tab_id, account);
+                });
             }
-            Msger::RefreshRoomInfo => {
-              match Room::from_msg(msg){
-                    Ok(room) => {
-                        listen::change_to_room(self.app.clone(), self.tab_id, room.clone());
-                        self.room = Some(room);
-                    }
-                    Err(e) => {
-                        println!("change_to_room error: {}", e);
-                    }
+            Msger::RefreshRoomInfo => match Room::from_msg(msg) {
+                Ok(room) => {
+                    listen::change_to_room(self.app.clone(), self.tab_id, room.clone());
+                    self.room = Some(room);
                 }
-            }
-            Msger::RefreshGameInfo => {
-                match Game::from_msg(msg){
-                    Ok(game) => {
-                        listen::update_game(self.app.clone(), self.tab_id, game.clone());
-                        self.game = Some(game);
-                    }
-                    Err(e) => {
-                        println!("update_game error: {}", e);
-                    }
+                Err(e) => {
+                    println!("change_to_room error: {}", e);
                 }
-            }
-            Msger::DispatchCustomBottom =>{
+            },
+            Msger::RefreshGameInfo => match Game::from_msg(msg) {
+                Ok(game) => {
+                    listen::update_game(self.app.clone(), self.tab_id, game.clone());
+                    self.game = Some(game);
+                }
+                Err(e) => {
+                    println!("update_game error: {}", e);
+                }
+            },
+            Msger::DispatchCustomBottom => {
                 let buttons: Vec<String> = msg.split(';').map(|s| s.to_string()).collect();
                 listen::dispatch_custom_bottom(self.app.clone(), self.tab_id, buttons);
             }
@@ -257,22 +248,12 @@ impl Player {
         }
     }
 
-    pub fn set_state(&mut self, state: u8) {
-        self.state = state;
-        match state {
-            1 => {
-                listen::change_to_hall(self.app.clone(), self.tab_id, self.hall_room_list.clone());
-            }
-            _ => {}
-        }
-    }
-
-    pub fn request_enter_room(&self, room_name:String) -> Result<()>{
-        if self.isLogin{
+    pub fn request_enter_room(&self, room_name: String) -> Result<()> {
+        if self.isLogin {
             let msg = Msger::RequestEnterRoom.to_msg(room_name);
             self.send(msg)?;
             Ok(())
-        }else{
+        } else {
             bail!("need login!")
         }
     }
