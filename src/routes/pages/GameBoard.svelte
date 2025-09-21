@@ -110,6 +110,9 @@
 
         //绘制棋盘
         ctx.fillStyle = "black";
+        ctx.strokeStyle = "black";
+
+        ctx.save();
         //绘制坐标
         //绘制横向
         let row_count = 0; //计数
@@ -203,6 +206,8 @@
                 );
             }
         }
+        ctx.stroke();
+
         ctx.save();
 
         //绘制棋盘
@@ -226,14 +231,33 @@
         }
         ctx.stroke();
 
-        //绘制sign
+        //绘制sign （在绘制棋子前）
         ctx.save();
 
         for (const item of game.sign) {
             let [k, ..._] = Object.keys(item);
             let v = item[k];
             if (k === "AroundSign") {
+                ctx.fillStyle = convertColorFormat(v.bg_color);
+                for (const index of v.index) {
+                    let [x, y] = toIndex(index, rows_len, cols_len);
+                    ctx.fillRect(
+                        x * finalWidth + board_x,
+                        y * finalWidth + board_y,
+                        finalWidth,
+                        finalWidth,
+                    );
+                    ctx.strokeStyle = convertColorFormat(v.ed_color);
+                    ctx.lineWidth = v.size;
+                    ctx.strokeRect(
+                        x * finalWidth + board_x,
+                        y * finalWidth + board_y,
+                        finalWidth,
+                        finalWidth,
+                    );
+                }
             } else if (k === "BadgeSign") {
+                // after
             } else if (k === "CacheSign") {
             } else if (k === "ColorSign") {
                 ctx.fillStyle = convertColorFormat(v.color);
@@ -252,6 +276,7 @@
             } else if (k === "PathSign") {
             } else if (k === "TextSign") {
             } else if (k === "TitleSign") {
+                // after
             }
         }
 
@@ -746,6 +771,54 @@
             }
         }
         ctx.stroke();
+
+        //绘制sign （在绘制棋子后i）
+        ctx.save();
+
+        for (const item of game.sign) {
+            let [k, ..._] = Object.keys(item);
+            let v = item[k];
+            if (k === "AroundSign") {
+                // before
+            } else if (k === "BadgeSign") {
+                let [x, y] = toIndex(v.index, rows_len, cols_len);
+                let [c_x, c_y] = toIndex(v.position, 3, 3); // 角标
+                ctx.beginPath();
+                ctx.fillStyle = convertColorFormat(v.bg_color);
+                ctx.arc(
+                    board_x + x * finalWidth + finalWidth * 0.25 * (c_x + 1),
+                    board_y + y * finalWidth + finalWidth * 0.25 * (c_y + 1),
+                    (finalWidth / 6) * 0.85,
+                    0,
+                    2 * Math.PI,
+                );
+                ctx.fill();
+
+                ctx.font = `12px 微软雅黑`;
+                let t_x =
+                    board_x + x * finalWidth + finalWidth * 0.25 * (c_x + 1);
+                let t_y =
+                    board_y + y * finalWidth + finalWidth * 0.25 * (c_y + 1);
+                ctx.fillStyle = convertColorFormat(v.te_color);
+                ctx.fillText(v.value, t_x, t_y);
+            } else if (k === "CacheSign") {
+            } else if (k === "ColorSign") {
+                // before
+            } else if (k === "FigureSign") {
+            } else if (k === "GroundSign") {
+            } else if (k === "LineSign") {
+            } else if (k === "PathSign") {
+            } else if (k === "TextSign") {
+            } else if (k === "TitleSign") {
+                ctx.font = `${Math.round(v.size * 40)}px 微软雅黑`;
+                let t_x = finalWidth * cols_len * v.position_x + board_x;
+                let t_y = finalWidth * rows_len * v.position_y + board_y;
+                ctx.fillStyle = convertColorFormat(v.color);
+                ctx.fillText(v.title, t_x, t_y);
+            }
+        }
+
+        ctx.stroke();
     }
 
     // 监听game变量变化并触发绘制
@@ -793,6 +866,7 @@
             x < game.board.cols_len &&
             y < game.board.rows_len
         ) {
+            console.log(rect, e, x, y, board_x, board_y, finalWidth);
             //x y反过来
             invoke("request_move_later", { tabId: tabId, x: y, y: x });
         }

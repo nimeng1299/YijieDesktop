@@ -23,6 +23,7 @@ pub fn run() {
             command::request_admit_defeat,
             command::request_custom_bottom_event,
             command::request_move_later,
+            command::request_leave_room,
             listen::show_toast,
             listen::login_success,
             listen::change_mode,

@@ -42,10 +42,10 @@ impl PlayerSocket {
         let player_keeplive = Arc::clone(&player);
 
         let read_thread = thread::spawn(move || {
-            let mut buffer = [0; 1024]; // Temporary buffer for reading from socket
+            let mut buffer = [0; 2048]; // Temporary buffer for reading from socket
             let mut can_start = false;
             let mut data_len = 0;
-            let mut datas: VecDeque<u8> = VecDeque::new();
+            let mut data_buffer: VecDeque<u8> = VecDeque::new();
             while running_read.load(Ordering::Relaxed) {
                 match read_stream.read(&mut buffer) {
                     Ok(0) => {
@@ -54,37 +54,36 @@ impl PlayerSocket {
                     }
                     Ok(n) => {
                         println!("read: {} bytes", n);
-                        datas.extend(&buffer[0..n]);
+                        data_buffer.extend(&buffer[0..n]);
 
-                        if !can_start && datas.len() > 2 {
-                            let len_datas = datas.drain(..2).collect::<Vec<u8>>();
-                            data_len = u16::from_be_bytes([len_datas[0], len_datas[1]]) as usize;
-                            println!("data_len: {}. let_datas: {:?}", data_len, len_datas);
-                            can_start = true;
-                        }
-                        if can_start && datas.len() >= data_len {
-                            let msg_datas = datas.drain(..data_len).collect::<Vec<u8>>();
-                            match JavaString::from_modified_utf8(msg_datas) {
-                                Ok(java_str) => {
-                                    println!("java_str: {}", java_str);
-                                    let mut player = player_read.lock().unwrap();
-                                    match player.read(java_str.trim().to_string()) {
-                                        Ok(_) => {}
-                                        Err(e) => {
-                                            println!("read error: {}", e);
-                                        }
+                        // 循环处理所有完整数据包
+                        while data_buffer.len() >= 2 {
+                            let data_len =
+                                u16::from_be_bytes([data_buffer[0], data_buffer[1]]) as usize;
+
+                            if data_buffer.len() < data_len + 2 {
+                                break; // 等待更多数据
+                            }
+
+                            // 移除长度头
+                            data_buffer.drain(0..2);
+                            let msg_bytes: Vec<u8> = data_buffer.drain(0..data_len).collect();
+
+                            // 异步处理避免阻塞读取线程
+                            let player_clone = Arc::clone(&player_read);
+                            thread::spawn(move || {
+                                if let Ok(java_str) = JavaString::from_modified_utf8(msg_bytes) {
+                                    let mut player = player_clone.lock().unwrap();
+                                    if let Err(e) = player.read(java_str.trim().to_string()) {
+                                        println!("处理错误: {}", e);
                                     }
                                 }
-                                Err(e) => {
-                                    println!("from_modified_utf8 error: {}", e);
-                                }
-                            }
-                            can_start = false;
+                            });
                         }
                     }
 
                     Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
-                        thread::sleep(Duration::from_millis(100));
+                        thread::sleep(Duration::from_millis(1));
                         continue;
                     }
                     Err(e) => {
@@ -98,7 +97,14 @@ impl PlayerSocket {
         let write_thread = thread::spawn(move || {
             while running_write.load(Ordering::Relaxed) {
                 while let Ok(msg) = send_rx.recv() {
-                    write_stream.write_all(&msg).unwrap();
+                    match write_stream.write_all(&msg) {
+                        Ok(_) => {}
+                        Err(e) => {
+                            running_write.store(false, Ordering::Relaxed);
+                            listen::show_toast(e.to_string().as_str(), "error");
+                        }
+                    }
+
                     println!("write: {:?}", msg);
                 }
             }
@@ -214,10 +220,13 @@ impl Player {
                 }
             },
             Msger::DispatchCustomBottom => {
-                let buttons: Vec<String> = msg.split(';').map(|s| s.to_string()).collect();
+                let mut buttons: Vec<String> = msg.split(';').map(|s| s.to_string()).collect();
+                if buttons.len() == 1 && buttons[0] == "-1" {
+                    buttons = Vec::new();
+                }
                 do_tab_datas(self.tab_id, |data| {
                     data.dispatch_custom_bottom(self.app.clone(), self.tab_id, buttons);
-                });
+                })
             }
             Msger::RefreshCountdown => {
                 let countdown: Vec<&str> = msg.split('&').collect();
@@ -235,6 +244,9 @@ impl Player {
                 do_tab_datas(self.tab_id, |data| {
                     data.change_move(self.app.clone(), self.tab_id, false);
                 });
+            }
+            Msger::WinMessage | Msger::GameStart => {
+                listen::show_toast(msg.as_str(), "success");
             }
             _ => {
                 println!("--> read: {} type: {}", msg, msg_type);

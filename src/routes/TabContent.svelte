@@ -140,7 +140,13 @@
     }
 </script>
 
-<div class="p-4" oncontextmenu={show_menu}>
+<div
+    class="p-4"
+    oncontextmenu={show_menu}
+    onclick={() => {
+        menuVisible = false;
+    }}
+>
     {#if modes === "login"}
         <Login {tabId} />
     {:else if modes === "roomlist"}

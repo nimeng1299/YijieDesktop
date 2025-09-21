@@ -193,3 +193,18 @@ pub fn request_move_later(tab_id: u32, x: u32, y: u32) -> Result<(), String> {
         Err("player not exists".to_string())
     }
 }
+
+/// 请求离开房间
+#[tauri::command]
+pub fn request_leave_room(tab_id: u32) -> Result<(), String> {
+    if let Some(player_socket) = PLAYER_MAP.get(&tab_id) {
+        player_socket
+            .get_player()
+            .map_err(|e| e.to_string())?
+            .send(Msger::RequestLeaveRoom.to_msg(format!("Ok")))
+            .map_err(|e| e.to_string())?;
+        Ok(())
+    } else {
+        Err("player not exists".to_string())
+    }
+}
