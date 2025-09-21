@@ -14,7 +14,7 @@ use crate::{
     content::{game::Game, hall_room_list::HallRoomList, room::Room},
     listen,
     socket::msger::{self, Msger},
-    tauris::do_tab_datas,
+    tauris::{change_tab_title, do_tab_datas},
 };
 use anyhow::{anyhow, bail, Result};
 use java_string::JavaString;
@@ -148,9 +148,6 @@ pub struct Player {
     tab_id: u32,
 
     pub isLogin: bool,
-
-    pub room: Option<Room>,
-    pub game: Option<Game>,
 }
 
 impl Player {
@@ -161,8 +158,6 @@ impl Player {
             tab_id,
             app,
             isLogin: false,
-            room: None,
-            game: None,
         }
     }
 
@@ -183,7 +178,7 @@ impl Player {
             Msger::LoginSuccess => {
                 println!("login success");
                 self.isLogin = true;
-                listen::login_success(self.app.clone(), self.tab_id, msg);
+                change_tab_title(self.app.clone(), self.tab_id, msg);
             }
             Msger::RefreshRoomList => {
                 let room_list = HallRoomList::from_string(msg);
@@ -200,8 +195,9 @@ impl Player {
             }
             Msger::RefreshRoomInfo => match Room::from_msg(msg) {
                 Ok(room) => {
-                    listen::change_to_room(self.app.clone(), self.tab_id, room.clone());
-                    self.room = Some(room);
+                    do_tab_datas(self.tab_id, |data| {
+                        data.change_to_room(self.app.clone(), self.tab_id, room.clone());
+                    });
                 }
                 Err(e) => {
                     println!("change_to_room error: {}", e);
@@ -209,8 +205,9 @@ impl Player {
             },
             Msger::RefreshGameInfo => match Game::from_msg(msg) {
                 Ok(game) => {
-                    listen::update_game(self.app.clone(), self.tab_id, game.clone());
-                    self.game = Some(game);
+                    do_tab_datas(self.tab_id, |data| {
+                        data.update_game(self.app.clone(), self.tab_id, game);
+                    });
                 }
                 Err(e) => {
                     println!("update_game error: {}", e);
@@ -218,18 +215,26 @@ impl Player {
             },
             Msger::DispatchCustomBottom => {
                 let buttons: Vec<String> = msg.split(';').map(|s| s.to_string()).collect();
-                listen::dispatch_custom_bottom(self.app.clone(), self.tab_id, buttons);
+                do_tab_datas(self.tab_id, |data| {
+                    data.dispatch_custom_bottom(self.app.clone(), self.tab_id, buttons);
+                });
             }
             Msger::RefreshCountdown => {
                 let countdown: Vec<&str> = msg.split('&').collect();
                 let countdown = (countdown[0].parse()?, countdown[1].parse()?);
-                listen::refresh_countdown(self.app.clone(), self.tab_id, countdown);
+                do_tab_datas(self.tab_id, |data| {
+                    data.refresh_countdown(self.app.clone(), self.tab_id, countdown);
+                });
             }
             Msger::YouCanMove => {
-                listen::you_can_move(self.app.clone(), self.tab_id);
+                do_tab_datas(self.tab_id, |data| {
+                    data.change_move(self.app.clone(), self.tab_id, true);
+                });
             }
             Msger::YouNotMove => {
-                listen::you_not_move(self.app.clone(), self.tab_id);
+                do_tab_datas(self.tab_id, |data| {
+                    data.change_move(self.app.clone(), self.tab_id, false);
+                });
             }
             _ => {
                 println!("--> read: {} type: {}", msg, msg_type);

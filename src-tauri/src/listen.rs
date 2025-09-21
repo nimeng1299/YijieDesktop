@@ -26,6 +26,12 @@ pub fn login_success(app: tauri::AppHandle, tab_id: u32, name: String) {
     app.emit("login_success", (tab_id, name)).unwrap();
 }
 
+/// 用户位置改变 登录/大厅/房间/...
+#[tauri::command]
+pub fn change_mode(app: tauri::AppHandle, tab_id: u32, mode: String) {
+    app.emit("change_mode", (tab_id, mode)).unwrap();
+}
+
 #[tauri::command]
 pub fn change_to_hall(app: tauri::AppHandle, tab_id: u32, room_list: HallRoomList) {
     app.emit("change_to_hall", (tab_id, room_list)).unwrap();
@@ -41,17 +47,20 @@ pub fn change_account(app: tauri::AppHandle, tab_id: u32, account: Account) {
     app.emit("change_account", (tab_id, account)).unwrap();
 }
 
+/// 棋盘更新
 #[tauri::command]
 pub fn update_game(app: tauri::AppHandle, tab_id: u32, game: Game) {
     app.emit("update_game", (tab_id, game)).unwrap();
 }
 
+/// 按钮渲染
 #[tauri::command]
 pub fn dispatch_custom_bottom(app: tauri::AppHandle, tab_id: u32, buttons: Vec<String>) {
     app.emit("dispatch_custom_bottom", (tab_id, buttons))
         .unwrap();
 }
 
+/// 倒计时更新
 #[tauri::command]
 pub fn refresh_countdown(app: tauri::AppHandle, tab_id: u32, countdown: (i32, i32)) {
     app.emit("refresh_countdown", (tab_id, countdown)).unwrap();

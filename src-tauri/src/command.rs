@@ -5,7 +5,9 @@ use crate::{
     listen::show_toast,
     player,
     socket::msger::Msger,
-    tauris::{base, create_tab_datas, tabs::TABS},
+    tauris::{
+        base, create_tab_datas, create_tab_title, get_tab_data, tab_data::TabData, tabs::TABS,
+    },
 };
 
 lazy_static! {
@@ -16,6 +18,8 @@ lazy_static! {
 pub fn init_app(app: tauri::AppHandle) {
     if !base::TAURI_INIT.load(std::sync::atomic::Ordering::Relaxed) {
         base::APP.set(app).unwrap();
+        //创建第一个窗口
+        create_tab_title();
 
         base::TAURI_INIT.store(true, std::sync::atomic::Ordering::Relaxed);
     }
@@ -31,6 +35,12 @@ pub fn add_tab_main() {
 #[tauri::command]
 pub fn close_tab(tab_id: u32) {
     TABS.lock().unwrap().close(tab_id);
+}
+
+/// 刷新数据
+#[tauri::command]
+pub fn refresh_data(tab_id: u32) -> Result<TabData, String> {
+    get_tab_data(tab_id).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
