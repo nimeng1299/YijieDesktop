@@ -853,7 +853,7 @@
     // 点击事件
     function handleClick(e) {
         console.log("can move", can_move);
-        if (!can_move) return;
+        //if (!can_move) return;
         const rect = canvas?.getBoundingClientRect();
         if (!rect) return;
 
