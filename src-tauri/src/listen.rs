@@ -3,7 +3,7 @@ use tauri::Emitter;
 use crate::{
     account::Account,
     content::{game::Game, hall_room_list::HallRoomList, room::Room},
-    tauris::{base::APP, tabs::Tabs},
+    tauris::base::APP,
 };
 
 //Toast
@@ -17,7 +17,7 @@ pub fn show_toast(message: &str, toast_type: &str) {
 
 //标签发生修改
 #[tauri::command]
-pub fn change_tabs(app: tauri::AppHandle, tabs: Tabs) {
+pub fn change_tabs(app: tauri::AppHandle, tabs: Vec<(u32, String)>) {
     app.emit("change_tabs", tabs).unwrap();
 }
 

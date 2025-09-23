@@ -6,7 +6,7 @@ use crate::{
     player,
     socket::msger::Msger,
     tauris::{
-        base, create_tab_datas, create_tab_title, get_tab_data, tab_data::TabData, tabs::TABS,
+        base, create_tab_datas, create_tab_title, delete_tab_title, get_tab_data, tab_data::TabData,
     },
 };
 
@@ -28,13 +28,13 @@ pub fn init_app(app: tauri::AppHandle) {
 //添加Tab
 #[tauri::command]
 pub fn add_tab_main() {
-    TABS.lock().unwrap().add_main();
+    create_tab_title();
 }
 
 //删除Tab
 #[tauri::command]
 pub fn close_tab(tab_id: u32) {
-    TABS.lock().unwrap().close(tab_id);
+    delete_tab_title(tab_id);
 }
 
 /// 刷新数据

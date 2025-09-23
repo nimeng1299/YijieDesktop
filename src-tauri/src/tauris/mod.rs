@@ -4,11 +4,13 @@ use anyhow::{bail, Result};
 use dashmap::DashMap;
 use lazy_static::lazy_static;
 
-use crate::{listen, tauris::tab_data::TabData};
+use crate::{
+    listen,
+    tauris::{base::APP, tab_data::TabData},
+};
 
 pub mod base;
 pub mod tab_data;
-pub mod tabs;
 
 static TAB_TITLE_COUNTER: AtomicU32 = AtomicU32::new(0);
 
@@ -28,6 +30,7 @@ pub enum TabState {
 pub fn create_tab_title() -> u32 {
     let id = TAB_TITLE_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     TAB_TITLE_MAP.insert(id, format!("({id}) 新用户"));
+    update_tabs();
     id
 }
 
@@ -35,6 +38,22 @@ pub fn create_tab_title() -> u32 {
 pub fn change_tab_title(app: tauri::AppHandle, id: u32, name: String) {
     TAB_TITLE_MAP.insert(id, format!("({id}) {name}"));
     listen::login_success(app, id, name);
+    update_tabs();
+}
+
+/// 删除tab
+pub fn delete_tab_title(id: u32) {
+    TAB_TITLE_MAP.remove(&id);
+    update_tabs()
+}
+
+/// 刷新
+pub fn update_tabs() {
+    let tabs: Vec<(u32, String)> = TAB_TITLE_MAP
+        .iter()
+        .map(|entry| (entry.key().clone(), entry.value().clone()))
+        .collect();
+    listen::change_tabs(APP.get().unwrap().clone(), tabs);
 }
 
 /// data
