@@ -26,7 +26,7 @@ pub struct PlayerSocket {
 }
 
 impl PlayerSocket {
-    pub fn connect(app: tauri::AppHandle, tab_id: u32, ip: &str) -> Result<Self> {
+    pub async fn connect(app: tauri::AppHandle, tab_id: u32, ip: &str) -> Result<Self> {
         let mut read_stream = TcpStream::connect(ip)?;
         let mut write_stream = read_stream.try_clone()?;
 

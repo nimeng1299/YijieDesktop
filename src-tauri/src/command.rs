@@ -44,7 +44,7 @@ pub fn refresh_data(tab_id: u32) -> Result<TabData, String> {
 }
 
 #[tauri::command]
-pub fn login(app: tauri::AppHandle, tab_id: u32, ip: &str, name: &str) -> Result<(), String> {
+pub async fn login(app: tauri::AppHandle, tab_id: u32, ip: &str, name: &str) -> Result<(), String> {
     let ip = if ip.is_empty() {
         "47.100.88.110:20003"
     } else {
@@ -53,8 +53,9 @@ pub fn login(app: tauri::AppHandle, tab_id: u32, ip: &str, name: &str) -> Result
     if PLAYER_MAP.contains_key(&tab_id) {
         PLAYER_MAP.remove(&tab_id);
     }
-    let mut player_socket =
-        player::PlayerSocket::connect(app, tab_id, ip).map_err(|e| e.to_string())?;
+    let mut player_socket = player::PlayerSocket::connect(app, tab_id, ip)
+        .await
+        .map_err(|e| e.to_string())?;
 
     // 等待连接建立
     let mut connected = false;
