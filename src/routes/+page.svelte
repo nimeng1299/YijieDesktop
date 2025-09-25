@@ -57,7 +57,7 @@
                 <input
                     type="radio"
                     name="my_tabs_1"
-                    checked={tabs.length === check_tabs}
+                    checked={tabs.length === 1}
                     onclick={() => {
                         check_tabs = tab[0];
                     }}
