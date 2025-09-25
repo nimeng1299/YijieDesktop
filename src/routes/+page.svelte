@@ -43,7 +43,12 @@
     });
 
     // 监听change_to_hall事件
-    listen("login_success", (event) => {});
+    listen("login_success", (event) => {
+        invoke("need_show_toast", {
+            message: "登录成功",
+            toastType: "success",
+        });
+    });
 </script>
 
 <main>

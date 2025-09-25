@@ -12,6 +12,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             command::init_app,
+            command::need_show_toast,
             command::add_tab_main,
             command::close_tab,
             command::login,

@@ -25,6 +25,12 @@ pub fn init_app(app: tauri::AppHandle) {
     }
 }
 
+/// 申请展示 toast
+#[tauri::command]
+pub fn need_show_toast(message: &str, toast_type: &str) {
+    show_toast(message, toast_type);
+}
+
 //添加Tab
 #[tauri::command]
 pub fn add_tab_main() {
@@ -93,7 +99,7 @@ pub async fn login(app: tauri::AppHandle, tab_id: u32, ip: &str, name: &str) -> 
     }
     PLAYER_MAP.insert(tab_id, player_socket);
     create_tab_datas(tab_id);
-    show_toast("登录成功", "success");
+    show_toast("登录请求中...", "info");
     Ok(())
 }
 
