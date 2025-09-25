@@ -4,45 +4,59 @@
     import GameCard from "./GameCard.svelte";
     import GameSpectator from "./GameSpectator.svelte";
 
-      let {tabId, room, game, buttons, countdown, can_move} = $props();
+    let { tabId, room, game, buttons, countdown, can_move } = $props();
 </script>
-<div class="game-container ">
-  <div class="game-left">
-    <div class="gamecard">
-      <GameCard tabId={tabId} player={room.black_player} score={game.black_score} side="black" countdown={countdown[0] + Date.now() / 1000} />
+
+<div class="game-container">
+    <div class="game-left">
+        <div class="gamecard">
+            <GameCard
+                {tabId}
+                player={room.black_player}
+                score={game.black_score}
+                side="black"
+                countdown={countdown[0] + Date.now() / 1000}
+            />
+        </div>
+        <div class="gamecard">
+            <GameCard
+                {tabId}
+                player={room.white_player}
+                score={game.white_score}
+                side="white"
+                countdown={countdown[1] + Date.now() / 1000}
+            />
+        </div>
     </div>
-    <div class="gamecard">
-      <GameCard tabId={tabId} player={room.white_player} score={game.white_score} side="white" countdown={countdown[1] + Date.now() / 1000} />
+    <div class="game-middle">
+        <GameBoard {tabId} {game} {can_move} />
     </div>
-  </div>
-  <div class="game-middle">
-    <GameBoard tabId={tabId} game={game} can_move={can_move} />
-  </div>
-  <div class="game-right">
-    <GameSpectator room_name={room.name} spectator={room.spectator}></GameSpectator>
-    <GameButtons tabId={tabId} buttons={buttons}></GameButtons>
-  </div>
+    <div class="game-right">
+        <GameSpectator room_name={room.name} spectator={room.spectator}
+        ></GameSpectator>
+        <GameButtons {tabId} {buttons}></GameButtons>
+    </div>
 </div>
 
 <style>
-  .game-container {
-    display: flex;
-    height: 90vh; /* 添加高度以便查看效果 */
-    gap: 10px;
-  }
-  .game-left {
-    width: 25%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-  .gamecard {
-    width: 100%; /* 添加宽度以占满 game-left */
-  }
-  .game-middle {
-    width: 60%;
-  }
-  .game-right {
-    width: 15%;
-  }
+    .game-container {
+        display: flex;
+        height: 90vh; /* 添加高度以便查看效果 */
+        gap: 10px;
+    }
+    .game-left {
+        width: 25%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .gamecard {
+        width: 100%; /* 添加宽度以占满 game-left */
+    }
+    .game-middle {
+        width: 60%;
+    }
+    .game-right {
+        width: 15%;
+    }
 </style>

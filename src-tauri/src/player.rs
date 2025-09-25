@@ -3,7 +3,7 @@ use std::{
     io::{Read, Write},
     sync::{
         atomic::{AtomicBool, Ordering},
-        mpsc, Arc, Mutex, MutexGuard,
+        Arc,
     },
     thread,
     time::Duration,
@@ -18,36 +18,40 @@ use crate::{
 };
 use anyhow::{anyhow, bail, Result};
 use java_string::JavaString;
-use std::net::TcpStream;
+use tokio::{
+    io::{AsyncReadExt, AsyncWriteExt},
+    net::TcpStream,
+    sync::{mpsc, Mutex, MutexGuard},
+    task::JoinHandle,
+};
 
 pub struct PlayerSocket {
     pub player: Arc<Mutex<Player>>,
     running: Arc<AtomicBool>,
+    tasks: Vec<JoinHandle<()>>,
 }
 
 impl PlayerSocket {
     pub async fn connect(app: tauri::AppHandle, tab_id: u32, ip: &str) -> Result<Self> {
-        let mut read_stream = TcpStream::connect(ip)?;
-        let mut write_stream = read_stream.try_clone()?;
+        let mut stream = TcpStream::connect(ip).await?;
+        let (mut read_stream, mut write_stream) = stream.into_split();
 
         let running = Arc::new(AtomicBool::new(true));
         let running_read = Arc::clone(&running);
         let running_write = Arc::clone(&running);
         let running_keeplive = Arc::clone(&running);
 
-        let (send_tx, send_rx) = mpsc::channel::<Vec<u8>>();
+        let (send_tx, mut send_rx) = mpsc::unbounded_channel::<Vec<u8>>();
 
         let player = Arc::new(Mutex::new(Player::new(send_tx, tab_id, app)));
         let player_read = Arc::clone(&player);
         let player_keeplive = Arc::clone(&player);
 
-        let read_thread = thread::spawn(move || {
+        let read_task = tokio::spawn(async move {
             let mut buffer = [0; 2048]; // Temporary buffer for reading from socket
-            let mut can_start = false;
-            let mut data_len = 0;
             let mut data_buffer: VecDeque<u8> = VecDeque::new();
             while running_read.load(Ordering::Relaxed) {
-                match read_stream.read(&mut buffer) {
+                match read_stream.read(&mut buffer).await {
                     Ok(0) => {
                         running_read.store(false, Ordering::Relaxed);
                         break;
@@ -71,9 +75,9 @@ impl PlayerSocket {
 
                             // 异步处理避免阻塞读取线程
                             let player_clone = Arc::clone(&player_read);
-                            thread::spawn(move || {
+                            tokio::spawn(async move {
                                 if let Ok(java_str) = JavaString::from_modified_utf8(msg_bytes) {
-                                    let mut player = player_clone.lock().unwrap();
+                                    let mut player = player_clone.lock().await;
                                     if let Err(e) = player.read(java_str.trim().to_string()) {
                                         println!("处理错误: {}", e);
                                     }
@@ -94,10 +98,10 @@ impl PlayerSocket {
             }
         });
 
-        let write_thread = thread::spawn(move || {
+        let write_task = tokio::spawn(async move {
             while running_write.load(Ordering::Relaxed) {
-                while let Ok(msg) = send_rx.recv() {
-                    match write_stream.write_all(&msg) {
+                while let Some(msg) = send_rx.recv().await {
+                    match write_stream.write_all(&msg).await {
                         Ok(_) => {}
                         Err(e) => {
                             running_write.store(false, Ordering::Relaxed);
@@ -110,31 +114,35 @@ impl PlayerSocket {
             }
         });
 
-        let keeplive_thread = thread::spawn(move || {
+        let keeplive_task = tokio::spawn(async move {
             while running_keeplive.load(Ordering::Relaxed) {
                 thread::sleep(Duration::from_secs(30));
                 let msg = Msger::KeepLive.to_msg("Ok".to_string());
-                player_keeplive.lock().unwrap().send(msg);
+                player_keeplive.lock().await.send(msg).await;
                 println!("keeplive");
             }
         });
 
-        Ok(Self { player, running })
+        Ok(Self {
+            player,
+            running,
+            tasks: vec![read_task, write_task, keeplive_task],
+        })
     }
 
-    pub fn send(&self, msg: Vec<u8>) -> Result<()> {
-        self.player.lock().unwrap().send(msg)
+    pub async fn send(&self, msg: Vec<u8>) -> Result<()> {
+        self.player.lock().await.send(msg).await
     }
 
-    pub fn get_player(&self) -> Result<MutexGuard<Player>> {
-        Ok(self
-            .player
-            .lock()
-            .map_err(|e| anyhow!("Failed to acquire player lock: {}", e))?)
+    pub async fn get_player(&self) -> MutexGuard<Player> {
+        self.player.lock().await
     }
 
-    pub fn close(&self) -> Result<()> {
+    pub async fn close(&self) -> Result<()> {
         self.running.store(false, Ordering::Relaxed);
+        for task in &self.tasks {
+            task.abort();
+        }
         Ok(())
     }
 }
@@ -147,7 +155,7 @@ impl Drop for PlayerSocket {
 
 #[derive(Debug)]
 pub struct Player {
-    send_tx: mpsc::Sender<Vec<u8>>,
+    send_tx: mpsc::UnboundedSender<Vec<u8>>,
     pub isConnected: bool,
 
     app: tauri::AppHandle,
@@ -157,7 +165,11 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn new(send_tx: mpsc::Sender<Vec<u8>>, tab_id: u32, app: tauri::AppHandle) -> Self {
+    pub fn new(
+        send_tx: mpsc::UnboundedSender<Vec<u8>>,
+        tab_id: u32,
+        app: tauri::AppHandle,
+    ) -> Self {
         Player {
             send_tx,
             isConnected: false,
@@ -167,7 +179,7 @@ impl Player {
         }
     }
 
-    pub fn send(&self, msg: Vec<u8>) -> Result<()> {
+    pub async fn send(&self, msg: Vec<u8>) -> Result<()> {
         self.send_tx.send(msg)?;
         Ok(())
     }
@@ -255,20 +267,20 @@ impl Player {
         Ok(())
     }
 
-    pub fn login(&self, name: &str) -> Result<()> {
+    pub async fn login(&self, name: &str) -> Result<()> {
         if self.isConnected {
             let msg = Msger::RequestLogin.to_msg(format!("{}@v1.4.0", name));
-            self.send(msg)?;
+            self.send(msg).await;
             Ok(())
         } else {
             Err(anyhow!("player not connected"))
         }
     }
 
-    pub fn request_enter_room(&self, room_name: String) -> Result<()> {
+    pub async fn request_enter_room(&self, room_name: String) -> Result<()> {
         if self.isLogin {
             let msg = Msger::RequestEnterRoom.to_msg(room_name);
-            self.send(msg)?;
+            self.send(msg).await;
             Ok(())
         } else {
             bail!("need login!")
