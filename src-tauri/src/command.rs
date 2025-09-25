@@ -44,7 +44,7 @@ pub fn refresh_data(tab_id: u32) -> Result<TabData, String> {
 }
 
 #[tauri::command]
-pub fn login(app: tauri::AppHandle, tab_id: u32, ip: &str, name: &str) -> Result<(), String> {
+pub async fn login(app: tauri::AppHandle, tab_id: u32, ip: &str, name: &str) -> Result<(), String> {
     let ip = if ip.is_empty() {
         "47.100.88.110:20003"
     } else {
@@ -53,14 +53,15 @@ pub fn login(app: tauri::AppHandle, tab_id: u32, ip: &str, name: &str) -> Result
     if PLAYER_MAP.contains_key(&tab_id) {
         PLAYER_MAP.remove(&tab_id);
     }
-    let mut player_socket =
-        player::PlayerSocket::connect(app, tab_id, ip).map_err(|e| e.to_string())?;
+    let mut player_socket = player::PlayerSocket::connect(app, tab_id, ip)
+        .await
+        .map_err(|e| e.to_string())?;
 
     // 等待连接建立
     let mut connected = false;
     for i in 0..5 {
         std::thread::sleep(std::time::Duration::from_secs(1));
-        let player = player_socket.get_player().map_err(|e| e.to_string())?;
+        let player = player_socket.get_player().await;
         if player.isConnected {
             connected = true;
             break;
@@ -74,8 +75,8 @@ pub fn login(app: tauri::AppHandle, tab_id: u32, ip: &str, name: &str) -> Result
 
     let mut login_success = false;
     for i in 0..5 {
-        let player = player_socket.get_player().map_err(|e| e.to_string())?;
-        let res = player.login(name);
+        let player = player_socket.get_player().await;
+        let res = player.login(name).await;
         match res {
             Ok(_) => {
                 login_success = true;
@@ -107,13 +108,13 @@ pub fn close(tab_id: u32) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn request_enter_room(tab_id: u32, room_name: &str) -> Result<(), String> {
+pub async fn request_enter_room(tab_id: u32, room_name: &str) -> Result<(), String> {
     if let Some(player_socket) = PLAYER_MAP.get(&tab_id) {
         player_socket
             .get_player()
-            .map_err(|e| e.to_string())?
+            .await
             .request_enter_room(room_name.to_string())
-            .map_err(|e| e.to_string())?;
+            .await;
         Ok(())
     } else {
         Err("player not exists".to_string())
@@ -121,13 +122,13 @@ pub fn request_enter_room(tab_id: u32, room_name: &str) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn request_be_chess_player(tab_id: u32, side: &str) -> Result<(), String> {
+pub async fn request_be_chess_player(tab_id: u32, side: &str) -> Result<(), String> {
     if let Some(player_socket) = PLAYER_MAP.get(&tab_id) {
         player_socket
             .get_player()
-            .map_err(|e| e.to_string())?
+            .await
             .send(Msger::RequestBeChessPlayer.to_msg(side.to_string()))
-            .map_err(|e| e.to_string())?;
+            .await;
         Ok(())
     } else {
         Err("player not exists".to_string())
@@ -136,13 +137,13 @@ pub fn request_be_chess_player(tab_id: u32, side: &str) -> Result<(), String> {
 
 //让座
 #[tauri::command]
-pub fn request_leave_seat(tab_id: u32) -> Result<(), String> {
+pub async fn request_leave_seat(tab_id: u32) -> Result<(), String> {
     if let Some(player_socket) = PLAYER_MAP.get(&tab_id) {
         player_socket
             .get_player()
-            .map_err(|e| e.to_string())?
+            .await
             .send(Msger::RequestLeaveSeat.to_msg("Ok".to_string()))
-            .map_err(|e| e.to_string())?;
+            .await;
         Ok(())
     } else {
         Err("player not exists".to_string())
@@ -151,13 +152,13 @@ pub fn request_leave_seat(tab_id: u32) -> Result<(), String> {
 
 //认输
 #[tauri::command]
-pub fn request_admit_defeat(tab_id: u32) -> Result<(), String> {
+pub async fn request_admit_defeat(tab_id: u32) -> Result<(), String> {
     if let Some(player_socket) = PLAYER_MAP.get(&tab_id) {
         player_socket
             .get_player()
-            .map_err(|e| e.to_string())?
+            .await
             .send(Msger::RequestAdmitDefeat.to_msg("Ok".to_string()))
-            .map_err(|e| e.to_string())?;
+            .await;
         Ok(())
     } else {
         Err("player not exists".to_string())
@@ -166,13 +167,13 @@ pub fn request_admit_defeat(tab_id: u32) -> Result<(), String> {
 
 //按钮requestCustomBottomEvent
 #[tauri::command]
-pub fn request_custom_bottom_event(tab_id: u32, event: &str) -> Result<(), String> {
+pub async fn request_custom_bottom_event(tab_id: u32, event: &str) -> Result<(), String> {
     if let Some(player_socket) = PLAYER_MAP.get(&tab_id) {
         player_socket
             .get_player()
-            .map_err(|e| e.to_string())?
+            .await
             .send(Msger::RequestCustomBottomEvent.to_msg(event.to_string()))
-            .map_err(|e| e.to_string())?;
+            .await;
         Ok(())
     } else {
         Err("player not exists".to_string())
@@ -181,13 +182,13 @@ pub fn request_custom_bottom_event(tab_id: u32, event: &str) -> Result<(), Strin
 
 //落子
 #[tauri::command]
-pub fn request_move_later(tab_id: u32, x: u32, y: u32) -> Result<(), String> {
+pub async fn request_move_later(tab_id: u32, x: u32, y: u32) -> Result<(), String> {
     if let Some(player_socket) = PLAYER_MAP.get(&tab_id) {
         player_socket
             .get_player()
-            .map_err(|e| e.to_string())?
+            .await
             .send(Msger::RequestMoveLater.to_msg(format!("{},{}", x, y)))
-            .map_err(|e| e.to_string())?;
+            .await;
         Ok(())
     } else {
         Err("player not exists".to_string())
@@ -196,13 +197,13 @@ pub fn request_move_later(tab_id: u32, x: u32, y: u32) -> Result<(), String> {
 
 /// 请求离开房间
 #[tauri::command]
-pub fn request_leave_room(tab_id: u32) -> Result<(), String> {
+pub async fn request_leave_room(tab_id: u32) -> Result<(), String> {
     if let Some(player_socket) = PLAYER_MAP.get(&tab_id) {
         player_socket
             .get_player()
-            .map_err(|e| e.to_string())?
+            .await
             .send(Msger::RequestLeaveRoom.to_msg(format!("Ok")))
-            .map_err(|e| e.to_string())?;
+            .await;
         Ok(())
     } else {
         Err("player not exists".to_string())

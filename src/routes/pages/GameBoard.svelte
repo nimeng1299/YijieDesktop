@@ -1,5 +1,6 @@
 <script>
     import { invoke } from "@tauri-apps/api/core";
+    import { onMount } from "svelte";
 
     let { tabId, game, can_move } = $props();
     let { finalWidth } = $state(0);
@@ -50,7 +51,11 @@
 
     // 绘制函数
     function draw() {
-        if (!canvas || !game) return;
+        if (!canvas || !game) {
+            console.log("not find game", game);
+            return;
+        }
+        console.log("draw check Ok.");
 
         const ctx = canvas.getContext("2d");
         if (!ctx) {
@@ -210,7 +215,9 @@
 
         ctx.save();
 
-        //绘制棋盘
+        //绘制棋盘线
+        ctx.fillStyle = "black";
+        ctx.strokeStyle = "black";
         board_x = col_count * finalWidth;
         board_y = row_count * finalWidth;
         //横向
@@ -279,9 +286,9 @@
                 // after
             }
         }
-
         ctx.stroke();
 
+        ctx.save();
         //绘制棋子
         let pieces = game_board.pieces;
         for (let i = 0; i < game_board.cols_len; i++) {
@@ -820,11 +827,20 @@
 
         ctx.stroke();
     }
+    let isMounted = false;
 
+    onMount(() => {
+        isMounted = true;
+    });
+
+    let curr;
     // 监听game变量变化并触发绘制
     $effect(() => {
+        if (!isMounted) return;
         if (!game) return;
-        console.log("draw");
+        let n = JSON.parse(JSON.stringify(game));
+        if (curr === n) return;
+        curr = n;
         draw();
     });
 
