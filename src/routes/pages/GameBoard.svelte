@@ -694,7 +694,6 @@
 
         stage.on("click", (e) => {
             const pointerPos = stage.getPointerPosition();
-            console.log("click", pointerPos);
             const x = Math.floor((pointerPos.x - board_x) / finalWidth);
             const y = Math.floor((pointerPos.y - board_y) / finalWidth);
             if (
@@ -704,6 +703,7 @@
                 y < game.board.rows_len
             ) {
                 //x y反过来
+                console.log("click", y, x);
                 invoke("request_move_later", { tabId: tabId, x: y, y: x });
             }
         });

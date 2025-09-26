@@ -8,7 +8,9 @@ This template should help get you started developing with Tauri, SvelteKit and T
 
 ## Todo
 
-0. tabs from front to rust
+0. delte tab
 1. figure_sign
 2. pieces > 17
 3. 富文本
+4. 登录直接切换到棋盘会卡死
+5. 有时候会断网

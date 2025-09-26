@@ -23,7 +23,7 @@ export function getText(i, len, mode) {
 
 //转换回坐标
 function toIndex(index, row, col) {
-  return [index % col, Math.floor(index / row)];
+  return [index % col, Math.floor(index / col)];
 }
 
 //转换颜色 argb -> rgba
