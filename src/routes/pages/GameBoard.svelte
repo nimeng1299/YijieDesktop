@@ -1,6 +1,7 @@
 <script>
     import { invoke } from "@tauri-apps/api/core";
     import { onDestroy, onMount } from "svelte";
+    import * as drawb from "./drawb";
     import Konva from "konva";
 
     let { tabId, game, can_move } = $props();
@@ -9,242 +10,108 @@
     let { board_x } = $state(0);
     let { board_y } = $state(0);
     let stage;
-    let layer = new Konva.Layer();
 
     let boardElement;
     let resizeObserver;
 
-    // 计算绘制哪个文字 i：坐标，len：长度，mode：哪种模式
-    // 1- 6 英文字母正序，英文字母倒序，阿拉伯数字正序，阿拉伯数字倒序，中文数字正序，中文数字倒序
-    function getText(i, len, mode) {
-        if (mode === "1") {
-            return String.fromCharCode(64 + i);
-        } else if (mode === "2") {
-            return String.fromCharCode(64 + len - i);
-        } else if (mode === "3") {
-            let num = i;
-            return num.toString();
-        } else if (mode === "4") {
-            let num = len - i;
-            return num.toString();
-        } else if (mode === "5") {
-            return String.fromCharCode(19968 + i);
-        } else if (mode === "6") {
-            return String.fromCharCode(19968 + len - i);
-        } else {
-            return "";
-        }
-    }
-
-    //转换回坐标
-    function toIndex(index, row, col) {
-        return [index % col, Math.floor(index / row)];
-    }
-
-    function convertColorFormat(colorStr) {
-        // 假设输入格式为 #AARRGGBB
-        if (colorStr.length !== 9) {
-            throw new Error("Invalid color format");
-        }
-        const aa = colorStr.substring(1, 3);
-        const rr = colorStr.substring(3, 5);
-        const gg = colorStr.substring(5, 7);
-        const bb = colorStr.substring(7, 9);
-        return `#${rr}${gg}${bb}${aa}`;
-    }
-
     // 绘制函数
     function draw() {
-        layer.clear();
-        stage.clear();
-        var circle = new Konva.Circle({
-            x: stage.width() / 2,
-            y: stage.height() / 2,
-            radius: 70,
-            fill: "red",
-            stroke: "black",
-            strokeWidth: 4,
-        });
+        let layer = new Konva.Layer();
+        stage.destroyChildren();
+        stage.draw();
 
-        // 将形状添加到图层
-        layer.add(circle);
+        const boardDiv = document.getElementById("board");
+        const boardWidth = boardDiv.clientWidth - 1;
+        const boardHeight = boardDiv.clientHeight - 1;
+
+        // 修改 stage 宽高
+        stage.width(boardWidth);
+        stage.height(boardHeight);
+
+        let game_board = game.board;
+        let cols_len = game_board.cols_len; //多少列
+        let rows_len = game_board.rows_len; //多少行
+        let board_cols_len = cols_len; //绘制多少列 （加上坐标）
+        let board_rows_len = rows_len; //绘制多少行 （加上坐标）
+        //左上右下
+        let have_coord = [false, false, false, false]; //是否绘制坐标
+        // 如果有坐标，则长宽 +1
+        if (game.coord_mode[0] !== "0") {
+            board_rows_len += 1;
+            have_coord[0] = true;
+        }
+        if (game.coord_mode[1] !== "0") {
+            board_cols_len += 1;
+            have_coord[1] = true;
+        }
+        if (game.coord_mode[2] !== "0") {
+            board_rows_len += 1;
+            have_coord[2] = true;
+        }
+        if (game.coord_mode[3] !== "0") {
+            board_cols_len += 1;
+            have_coord[3] = true;
+        }
+        //坐标缩进
+        //左右边起点缩进格数，左右边终点缩进格数，上下边起点缩进格数，上下边终点缩进格数。
+        let coord_indent = [
+            parseInt(game.coord_mode[4]),
+            parseInt(game.coord_mode[5]),
+            parseInt(game.coord_mode[6]),
+            parseInt(game.coord_mode[7]),
+        ];
+        // 计算每个单元格的宽度和高度
+        const cellWidth = boardWidth / board_cols_len;
+        const cellHeight = boardHeight / board_rows_len;
+        // 每个格子的最终宽度取最小
+        finalWidth = Math.floor(Math.min(cellWidth, cellHeight) * 0.99);
+
+        if (have_coord[0]) {
+            board_x = finalWidth;
+        } else {
+            board_x = 0;
+        }
+        if (have_coord[1]) {
+            board_y = finalWidth;
+        } else {
+            board_y = 0;
+        }
+
+        // 绘制格子
+        drawb.drawSide(layer, board_x, board_y, cols_len, rows_len, finalWidth);
+
+        // 绘制坐标
+        drawb.drawCoord(
+            layer,
+            game.coord_mode,
+            have_coord,
+            coord_indent,
+            cols_len,
+            rows_len,
+            finalWidth,
+        );
+
+        drawb.drawSignBefore(
+            layer,
+            game.sign,
+            board_x,
+            board_y,
+            rows_len,
+            cols_len,
+            finalWidth,
+        );
+
+        drawb.drawSignAfter(
+            layer,
+            game.sign,
+            board_x,
+            board_y,
+            rows_len,
+            cols_len,
+            finalWidth,
+        );
 
         stage.add(layer);
-        // if (!canvas || !game) {
-        //     console.log("not find game", game);
-        //     return;
-        // }
-        // const ctx = canvas.getContext("2d");
-        // if (!ctx) {
-        //     console.error("无法获取Canvas上下文");
-        //     return;
-        // }
-        // // 清除画布
-        // ctx.imageSmoothingEnabled = true;
-        // // 先获取区域宽高
-        // const boardDiv = canvas.parentElement;
-        // const boardWidth = boardDiv.clientWidth;
-        // const boardHeight = boardDiv.clientHeight;
-        // canvasWidth = Math.min(boardWidth, boardHeight);
-        // ctx.clearRect(0, 0, boardWidth, boardHeight);
-        // let game_board = game.board;
-        // let cols_len = game_board.cols_len; //多少列
-        // let rows_len = game_board.rows_len; //多少行
-        // let board_cols_len = cols_len;
-        // let board_rows_len = rows_len;
-        // //左上右下
-        // let have_coord = [false, false, false, false];
-        // // 如果有坐标，则长宽 +1
-        // if (game.coord_mode[0] !== "0") {
-        //     board_rows_len += 1;
-        //     have_coord[0] = true;
-        // }
-        // if (game.coord_mode[1] !== "0") {
-        //     board_cols_len += 1;
-        //     have_coord[1] = true;
-        // }
-        // if (game.coord_mode[2] !== "0") {
-        //     board_rows_len += 1;
-        //     have_coord[2] = true;
-        // }
-        // if (game.coord_mode[3] !== "0") {
-        //     board_cols_len += 1;
-        //     have_coord[3] = true;
-        // }
-        // //坐标缩进
-        // //左右边起点缩进格数，左右边终点缩进格数，上下边起点缩进格数，上下边终点缩进格数。
-        // let coord_indent = [
-        //     parseInt(game.coord_mode[4]),
-        //     parseInt(game.coord_mode[5]),
-        //     parseInt(game.coord_mode[6]),
-        //     parseInt(game.coord_mode[7]),
-        // ];
-        // // 计算每个单元格的宽度和高度
-        // const cellWidth = boardWidth / board_cols_len;
-        // const cellHeight = boardHeight / board_rows_len;
-        // // 最终宽度取最小
-        // finalWidth = Math.floor(Math.min(cellWidth, cellHeight) * 0.99);
-        // //绘制棋盘
-        // ctx.fillStyle = "black";
-        // ctx.strokeStyle = "black";
-        // ctx.save();
-        // //绘制坐标
-        // //绘制横向
-        // let row_count = 0; //计数
-        // if (have_coord[1]) {
-        //     //绘制上方横向坐标
-        //     ctx.font = `${Math.round(finalWidth / 2)}px 微软雅黑`;
-        //     ctx.textAlign = "center";
-        //     ctx.textBaseline = "middle";
-        //     let indent = 0; //左边有坐标就缩进
-        //     if (have_coord[0]) {
-        //         indent = 1;
-        //     }
-        //     for (
-        //         let i = coord_indent[2] + indent;
-        //         i < cols_len - coord_indent[3] + indent;
-        //         i++
-        //     ) {
-        //         ctx.fillText(
-        //             getText(i, cols_len, game.coord_mode[1]),
-        //             i * finalWidth + Math.round(finalWidth / 2),
-        //             Math.round(finalWidth / 2),
-        //         );
-        //     }
-        //     row_count += 1;
-        // }
-        // if (have_coord[3]) {
-        //     //绘制下方横向坐标
-        //     ctx.font = `${Math.round(finalWidth / 2)}px 微软雅黑`;
-        //     ctx.textAlign = "center";
-        //     ctx.textBaseline = "middle";
-        //     let indent = 0; //左边有坐标就缩进
-        //     if (have_coord[0]) {
-        //         indent = 1;
-        //     }
-        //     for (
-        //         let i = coord_indent[2] + indent;
-        //         i < cols_len - coord_indent[3] + indent;
-        //         i++
-        //     ) {
-        //         ctx.fillText(
-        //             getText(i, cols_len, game.coord_mode[1]),
-        //             i * finalWidth + Math.round(finalWidth / 2),
-        //             (row_count + rows_len) * finalWidth +
-        //                 Math.round(finalWidth / 2),
-        //         );
-        //     }
-        // }
-        // //绘制纵向
-        // let col_count = 0; //计数
-        // if (have_coord[0]) {
-        //     //绘制左方纵向坐标
-        //     ctx.font = `${Math.round(finalWidth / 2)}px 微软雅黑`;
-        //     ctx.textAlign = "center";
-        //     ctx.textBaseline = "middle";
-        //     let indent = 0; //上边有坐标就缩进
-        //     if (have_coord[1]) {
-        //         indent = 1;
-        //     }
-        //     for (
-        //         let i = coord_indent[0] + indent;
-        //         i < rows_len - coord_indent[1] + indent;
-        //         i++
-        //     ) {
-        //         ctx.fillText(
-        //             getText(i, rows_len, game.coord_mode[0]),
-        //             Math.round(finalWidth / 2),
-        //             i * finalWidth + Math.round(finalWidth / 2),
-        //         );
-        //     }
-        //     col_count += 1;
-        // }
-        // if (have_coord[2]) {
-        //     //绘制右方纵向坐标
-        //     ctx.font = `${Math.round(finalWidth / 2)}px 微软雅黑`;
-        //     ctx.textAlign = "center";
-        //     ctx.textBaseline = "middle";
-        //     let indent = 0; //左边有坐标就缩进
-        //     if (have_coord[1]) {
-        //         indent = 1;
-        //     }
-        //     for (
-        //         let i = coord_indent[2] + indent;
-        //         i < rows_len - coord_indent[3] + indent;
-        //         i++
-        //     ) {
-        //         ctx.fillText(
-        //             getText(i, rows_len, game.coord_mode[2]),
-        //             (col_count + cols_len) * finalWidth +
-        //                 Math.round(finalWidth / 2),
-        //             i * finalWidth + Math.round(finalWidth / 2),
-        //         );
-        //     }
-        // }
-        // ctx.stroke();
-        // ctx.save();
-        // //绘制棋盘线
-        // ctx.fillStyle = "black";
-        // ctx.strokeStyle = "black";
-        // board_x = col_count * finalWidth;
-        // board_y = row_count * finalWidth;
-        // //横向
-        // for (let i = 0; i < rows_len + 1; i++) {
-        //     ctx.moveTo(board_x, board_y + i * finalWidth);
-        //     ctx.lineTo(
-        //         board_x + cols_len * finalWidth,
-        //         board_y + i * finalWidth,
-        //     );
-        // }
-        // //纵向
-        // for (let i = 0; i < cols_len + 1; i++) {
-        //     ctx.moveTo(board_x + i * finalWidth, board_y);
-        //     ctx.lineTo(
-        //         board_x + i * finalWidth,
-        //         board_y + rows_len * finalWidth,
-        //     );
-        // }
-        // ctx.stroke();
         // //绘制sign （在绘制棋子前）
         // ctx.save();
         // for (const item of game.sign) {
@@ -825,6 +692,22 @@
             height: 500,
         });
 
+        stage.on("click", (e) => {
+            const pointerPos = stage.getPointerPosition();
+            console.log("click", pointerPos);
+            const x = Math.floor((pointerPos.x - board_x) / finalWidth);
+            const y = Math.floor((pointerPos.y - board_y) / finalWidth);
+            if (
+                x >= 0 &&
+                y >= 0 &&
+                x < game.board.cols_len &&
+                y < game.board.rows_len
+            ) {
+                //x y反过来
+                invoke("request_move_later", { tabId: tabId, x: y, y: x });
+            }
+        });
+
         // 创建ResizeObserver实例
         resizeObserver = new ResizeObserver((entries) => {
             for (let entry of entries) {
@@ -833,8 +716,6 @@
                 let width = rect.width;
                 let height = rect.height;
 
-                console.log("Board尺寸变化:", width, height);
-                // 这里可以添加你的业务逻辑
                 draw();
             }
         });
@@ -864,28 +745,6 @@
         curr = n;
         draw();
     });
-
-    // 点击事件
-    function handleClick(e) {
-        console.log("can move", can_move);
-        //if (!can_move) return;
-        const rect = canvas?.getBoundingClientRect();
-        if (!rect) return;
-
-        const x = Math.floor((e.clientX - rect.left - board_x) / finalWidth);
-        const y = Math.floor((e.clientY - rect.top - board_y) / finalWidth);
-        console.log(rect, e, x, y, board_x, board_y, finalWidth);
-        if (
-            x >= 0 &&
-            y >= 0 &&
-            x < game.board.cols_len &&
-            y < game.board.rows_len
-        ) {
-            console.log(rect, e, x, y, board_x, board_y, finalWidth);
-            //x y反过来
-            invoke("request_move_later", { tabId: tabId, x: y, y: x });
-        }
-    }
 </script>
 
 <div class="board" id="board" bind:this={boardElement}></div>
