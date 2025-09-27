@@ -101,6 +101,16 @@
             finalWidth,
         );
 
+        drawb.drawPiece(
+            layer,
+            game.board.pieces,
+            board_x,
+            board_y,
+            rows_len,
+            cols_len,
+            finalWidth,
+        );
+
         drawb.drawSignAfter(
             layer,
             game.sign,
@@ -112,54 +122,6 @@
         );
 
         stage.add(layer);
-        // //绘制sign （在绘制棋子前）
-        // ctx.save();
-        // for (const item of game.sign) {
-        //     let [k, ..._] = Object.keys(item);
-        //     let v = item[k];
-        //     if (k === "AroundSign") {
-        //         ctx.fillStyle = convertColorFormat(v.bg_color);
-        //         for (const index of v.index) {
-        //             let [x, y] = toIndex(index, rows_len, cols_len);
-        //             ctx.fillRect(
-        //                 x * finalWidth + board_x,
-        //                 y * finalWidth + board_y,
-        //                 finalWidth,
-        //                 finalWidth,
-        //             );
-        //             ctx.strokeStyle = convertColorFormat(v.ed_color);
-        //             ctx.lineWidth = v.size;
-        //             ctx.strokeRect(
-        //                 x * finalWidth + board_x,
-        //                 y * finalWidth + board_y,
-        //                 finalWidth,
-        //                 finalWidth,
-        //             );
-        //         }
-        //     } else if (k === "BadgeSign") {
-        //         // after
-        //     } else if (k === "CacheSign") {
-        //     } else if (k === "ColorSign") {
-        //         ctx.fillStyle = convertColorFormat(v.color);
-        //         for (const index of v.indexes) {
-        //             let [x, y] = toIndex(index, rows_len, cols_len);
-        //             ctx.fillRect(
-        //                 x * finalWidth + board_x,
-        //                 y * finalWidth + board_y,
-        //                 finalWidth,
-        //                 finalWidth,
-        //             );
-        //         }
-        //     } else if (k === "FigureSign") {
-        //     } else if (k === "GroundSign") {
-        //     } else if (k === "LineSign") {
-        //     } else if (k === "PathSign") {
-        //     } else if (k === "TextSign") {
-        //     } else if (k === "TitleSign") {
-        //         // after
-        //     }
-        // }
-        // ctx.stroke();
         // ctx.save();
         // //绘制棋子
         // let pieces = game_board.pieces;

@@ -115,7 +115,7 @@ export function drawCoord(
       let complexText = new Konva.Text({
         x: i * finalWidth,
         y: 0,
-        text: getText(i, cols_len, coord_mode[1]),
+        text: getText(i - coord_indent[2], cols_len, coord_mode[1]),
         width: finalWidth,
         height: finalWidth,
         align: "center",
@@ -141,7 +141,7 @@ export function drawCoord(
       let complexText = new Konva.Text({
         x: i * finalWidth,
         y: (row_count + rows_len) * finalWidth,
-        text: getText(i, cols_len, coord_mode[3]),
+        text: getText(i - coord_indent[2], cols_len, coord_mode[3]),
         width: finalWidth,
         height: finalWidth,
         align: "center",
@@ -168,7 +168,7 @@ export function drawCoord(
       let complexText = new Konva.Text({
         x: 0,
         y: i * finalWidth,
-        text: getText(i, rows_len, coord_mode[0]),
+        text: getText(i - coord_indent[0], rows_len, coord_mode[0]),
         width: finalWidth,
         height: finalWidth,
         align: "center",
@@ -194,7 +194,7 @@ export function drawCoord(
       let complexText = new Konva.Text({
         x: (col_count + cols_len) * finalWidth,
         y: i * finalWidth,
-        text: getText(i, cols_len, coord_mode[3]),
+        text: getText(i - coord_indent[0], cols_len, coord_mode[3]),
         width: finalWidth,
         height: finalWidth,
         align: "center",
@@ -208,7 +208,6 @@ export function drawCoord(
 }
 
 // 绘制 sign (在绘制棋子前面 / 后景)
-//
 export function drawSignBefore(
   layer: Konva.Layer,
   sign,
@@ -364,6 +363,597 @@ export function drawSignAfter(
       layer.add(text);
     } else if (k === "TitleSign") {
       //
+    }
+  }
+}
+
+// 绘制棋子
+export function drawPiece(
+  layer: Konva.Layer,
+  pieces,
+  board_x,
+  board_y,
+  rows_len,
+  cols_len,
+  finalWidth,
+) {
+  for (let i = 0; i < cols_len; i++) {
+    for (let j = 0; j < rows_len; j++) {
+      let piece_mode = parseInt(pieces[i][j]);
+      if (piece_mode === 1) {
+        const circle = new Konva.Circle({
+          x: board_x + j * finalWidth + finalWidth / 2,
+          y: board_y + i * finalWidth + finalWidth / 2,
+          radius: (finalWidth / 2) * 0.85,
+          fill: "black",
+          stroke: "black",
+          strokeWidth: 1,
+        });
+        layer.add(circle);
+      } else if (piece_mode === 2) {
+        const circle = new Konva.Circle({
+          x: board_x + j * finalWidth + finalWidth / 2,
+          y: board_y + i * finalWidth + finalWidth / 2,
+          radius: (finalWidth / 2) * 0.85,
+          fill: "white",
+          stroke: "black",
+          strokeWidth: 1,
+        });
+        layer.add(circle);
+      } else if (piece_mode === 3) {
+        const circle = new Konva.Circle({
+          x: board_x + j * finalWidth + finalWidth / 2,
+          y: board_y + i * finalWidth + finalWidth / 2,
+          radius: (finalWidth / 2) * 0.85,
+          fill: "red",
+          stroke: "black",
+          strokeWidth: 1,
+        });
+        layer.add(circle);
+      } else if (piece_mode === 4) {
+        const circle = new Konva.Circle({
+          x: board_x + j * finalWidth + finalWidth / 2,
+          y: board_y + i * finalWidth + finalWidth / 2,
+          radius: (finalWidth / 2) * 0.85,
+          fill: "blue",
+          stroke: "black",
+          strokeWidth: 1,
+        });
+        layer.add(circle);
+      } else if (piece_mode === 5) {
+        const circle = new Konva.Circle({
+          x: board_x + j * finalWidth + finalWidth / 2,
+          y: board_y + i * finalWidth + finalWidth / 2,
+          radius: (finalWidth / 2) * 0.85,
+          fill: "yellow",
+          stroke: "black",
+          strokeWidth: 1,
+        });
+        layer.add(circle);
+      } else if (piece_mode === 6) {
+        const circle = new Konva.Circle({
+          x: board_x + j * finalWidth + finalWidth / 2,
+          y: board_y + i * finalWidth + finalWidth / 2,
+          radius: (finalWidth / 2) * 0.85,
+          fill: "green",
+          stroke: "black",
+          strokeWidth: 1,
+        });
+        layer.add(circle);
+      } else if (piece_mode === 7) {
+        const circle = new Konva.Circle({
+          x: board_x + j * finalWidth + finalWidth / 2,
+          y: board_y + i * finalWidth + finalWidth / 2,
+          radius: (finalWidth / 2) * 0.85,
+          fill: "gray",
+          stroke: "black",
+          strokeWidth: 1,
+        });
+        layer.add(circle);
+      } else if (piece_mode === 8) {
+        // 太极
+        const shape = new Konva.Shape({
+          x: board_x + j * finalWidth + finalWidth / 2,
+          y: board_y + i * finalWidth + finalWidth / 2,
+          radius: (finalWidth / 2) * 0.85,
+          sceneFunc: function (context, shape) {
+            // 绘制两个大半圆
+            context.beginPath();
+            context.arc(0, 0, shape.getAttr("radius"), 0, Math.PI * 2);
+            context.closePath();
+            context.fillStyle = "white";
+            context.fill();
+            context.strokeStyle = "black";
+            context.lineWidth = 2;
+            context.stroke();
+
+            context.beginPath();
+            context.arc(
+              0,
+              0,
+              shape.getAttr("radius"),
+              (Math.PI / 4) * 7,
+              (Math.PI / 4) * 3,
+            );
+            context.closePath();
+            context.fillStyle = "black";
+            context.fill();
+
+            // 绘制小半圆
+            context.beginPath();
+            context.arc(
+              +Math.sqrt(
+                (shape.getAttr("radius") *
+                  0.5 *
+                  shape.getAttr("radius") *
+                  0.5) /
+                  2,
+              ) * 0.98,
+              -Math.sqrt(
+                (shape.getAttr("radius") *
+                  0.5 *
+                  shape.getAttr("radius") *
+                  0.5) /
+                  2,
+              ) * 0.98,
+              shape.getAttr("radius") * 0.5,
+
+              0,
+              Math.PI * 2,
+            );
+            context.closePath();
+            context.fillStyle = "white";
+            context.fill();
+
+            context.beginPath();
+            context.arc(
+              -Math.sqrt(
+                (shape.getAttr("radius") *
+                  0.5 *
+                  shape.getAttr("radius") *
+                  0.5) /
+                  2,
+              ) * 0.98,
+              +Math.sqrt(
+                (shape.getAttr("radius") *
+                  0.5 *
+                  shape.getAttr("radius") *
+                  0.5) /
+                  2,
+              ) * 0.98,
+              shape.getAttr("radius") * 0.5,
+
+              0,
+              Math.PI * 2,
+            );
+            context.closePath();
+            context.fillStyle = "black";
+            context.fill();
+
+            // 绘制两个中心点
+            context.beginPath();
+            context.arc(
+              +Math.sqrt(
+                (shape.getAttr("radius") *
+                  0.5 *
+                  shape.getAttr("radius") *
+                  0.5) /
+                  2,
+              ) * 0.98,
+              -Math.sqrt(
+                (shape.getAttr("radius") *
+                  0.5 *
+                  shape.getAttr("radius") *
+                  0.5) /
+                  2,
+              ) * 0.98,
+              shape.getAttr("radius") * 0.15,
+
+              0,
+              Math.PI * 2,
+            );
+            context.closePath();
+            context.fillStyle = "black";
+            context.fill();
+
+            context.beginPath();
+            context.arc(
+              -Math.sqrt(
+                (shape.getAttr("radius") *
+                  0.5 *
+                  shape.getAttr("radius") *
+                  0.5) /
+                  2,
+              ) * 0.98,
+              +Math.sqrt(
+                (shape.getAttr("radius") *
+                  0.5 *
+                  shape.getAttr("radius") *
+                  0.5) /
+                  2,
+              ) * 0.98,
+              shape.getAttr("radius") * 0.15,
+
+              0,
+              Math.PI * 2,
+            );
+            context.closePath();
+            context.fillStyle = "white";
+            context.fill();
+          },
+        });
+        layer.add(shape);
+      } else if (piece_mode === 9) {
+        console.log(j, i);
+
+        //绘制围墙
+        const shape = new Konva.Shape({
+          x: board_x + j * finalWidth,
+          y: board_y + i * finalWidth,
+          width: finalWidth,
+          sceneFunc: function (context, shape) {
+            context.beginPath();
+            context.fillStyle = "orange";
+            context.closePath();
+            context.fillRect(
+              0,
+              0,
+              shape.getAttr("width"),
+              shape.getAttr("width"),
+            );
+            context.strokeStyle = "black";
+            context.lineWidth = 2;
+            context.strokeRect(
+              0,
+              0,
+              shape.getAttr("width"),
+              shape.getAttr("width"),
+            );
+
+            context.beginPath();
+            context.fillStyle = "red";
+            context.closePath();
+            context.strokeStyle = "black";
+            context.lineWidth = 2;
+            context.fillRect(
+              0,
+              0,
+              shape.getAttr("width") * 0.65,
+              shape.getAttr("width") * 0.25,
+            );
+            context.strokeRect(
+              0,
+              0,
+              shape.getAttr("width") * 0.65,
+              shape.getAttr("width") * 0.25,
+            );
+
+            context.beginPath();
+            context.fillStyle = "red";
+            context.closePath();
+            context.strokeStyle = "black";
+            context.lineWidth = 2;
+            context.fillRect(
+              0 + shape.getAttr("width") * 0.35,
+              0 + shape.getAttr("width") * 0.25,
+              shape.getAttr("width") * 0.65,
+              shape.getAttr("width") * 0.25,
+            );
+            context.strokeRect(
+              0 + shape.getAttr("width") * 0.35,
+              0 + shape.getAttr("width") * 0.25,
+              shape.getAttr("width") * 0.65,
+              shape.getAttr("width") * 0.25,
+            );
+
+            context.beginPath();
+            context.fillStyle = "red";
+            context.closePath();
+            context.strokeStyle = "black";
+            context.lineWidth = 2;
+            context.fillRect(
+              0,
+              0 + shape.getAttr("width") * 0.5,
+              shape.getAttr("width") * 0.65,
+              shape.getAttr("width") * 0.25,
+            );
+            context.strokeRect(
+              0,
+              0 + shape.getAttr("width") * 0.5,
+              shape.getAttr("width") * 0.65,
+              shape.getAttr("width") * 0.25,
+            );
+
+            context.beginPath();
+            context.fillStyle = "red";
+            context.closePath();
+            context.strokeStyle = "black";
+            context.lineWidth = 2;
+            context.fillRect(
+              0 + shape.getAttr("width") * 0.35,
+              0 + shape.getAttr("width") * 0.75,
+              shape.getAttr("width") * 0.65,
+              shape.getAttr("width") * 0.25,
+            );
+            context.strokeRect(
+              0 + shape.getAttr("width") * 0.35,
+              0 + shape.getAttr("width") * 0.75,
+              shape.getAttr("width") * 0.65,
+              shape.getAttr("width") * 0.25,
+            );
+          },
+        });
+        layer.add(shape);
+      } else if (piece_mode === 11) {
+        const rect = new Konva.Rect({
+          x: board_x + j * finalWidth + finalWidth / 2 - finalWidth * 0.8 * 0.5,
+          y: board_y + i * finalWidth + finalWidth / 2 - finalWidth * 0.8 * 0.5,
+          width: finalWidth * 0.8,
+          height: finalWidth * 0.8,
+          fill: "black",
+          stroke: "black",
+          strokeWidth: 2,
+        });
+        layer.add(rect);
+      } else if (piece_mode === 12) {
+        const rect = new Konva.Rect({
+          x: board_x + j * finalWidth + finalWidth / 2 - finalWidth * 0.8 * 0.5,
+          y: board_y + i * finalWidth + finalWidth / 2 - finalWidth * 0.8 * 0.5,
+          width: finalWidth * 0.8,
+          height: finalWidth * 0.8,
+          fill: "white",
+          stroke: "black",
+          strokeWidth: 2,
+        });
+        layer.add(rect);
+      } else if (piece_mode === 13) {
+        const rect = new Konva.Rect({
+          x: board_x + j * finalWidth + finalWidth / 2 - finalWidth * 0.8 * 0.5,
+          y: board_y + i * finalWidth + finalWidth / 2 - finalWidth * 0.8 * 0.5,
+          width: finalWidth * 0.8,
+          height: finalWidth * 0.8,
+          fill: "red",
+          stroke: "black",
+          strokeWidth: 2,
+        });
+        layer.add(rect);
+      } else if (piece_mode === 14) {
+        const rect = new Konva.Rect({
+          x: board_x + j * finalWidth + finalWidth / 2 - finalWidth * 0.8 * 0.5,
+          y: board_y + i * finalWidth + finalWidth / 2 - finalWidth * 0.8 * 0.5,
+          width: finalWidth * 0.8,
+          height: finalWidth * 0.8,
+          fill: "blue",
+          stroke: "black",
+          strokeWidth: 2,
+        });
+        layer.add(rect);
+      } else if (piece_mode === 15) {
+        const rect = new Konva.Rect({
+          x: board_x + j * finalWidth + finalWidth / 2 - finalWidth * 0.8 * 0.5,
+          y: board_y + i * finalWidth + finalWidth / 2 - finalWidth * 0.8 * 0.5,
+          width: finalWidth * 0.8,
+          height: finalWidth * 0.8,
+          fill: "yellow",
+          stroke: "black",
+          strokeWidth: 2,
+        });
+        layer.add(rect);
+      } else if (piece_mode === 16) {
+        const rect = new Konva.Rect({
+          x: board_x + j * finalWidth + finalWidth / 2 - finalWidth * 0.8 * 0.5,
+          y: board_y + i * finalWidth + finalWidth / 2 - finalWidth * 0.8 * 0.5,
+          width: finalWidth * 0.8,
+          height: finalWidth * 0.8,
+          fill: "green",
+          stroke: "black",
+          strokeWidth: 2,
+        });
+        layer.add(rect);
+      } else if (piece_mode === 17) {
+        const rect = new Konva.Rect({
+          x: board_x + j * finalWidth + finalWidth / 2 - finalWidth * 0.8 * 0.5,
+          y: board_y + i * finalWidth + finalWidth / 2 - finalWidth * 0.8 * 0.5,
+          width: finalWidth * 0.8,
+          height: finalWidth * 0.8,
+          fill: "gray",
+          stroke: "black",
+          strokeWidth: 2,
+        });
+        layer.add(rect);
+      } else if (piece_mode === 21) {
+        let _x = board_x + j * finalWidth;
+        let _y = board_y + i * finalWidth;
+        const polygon = new Konva.Line({
+          points: [
+            _x + finalWidth * 0.5,
+            _y + finalWidth * 0.12,
+            _x + finalWidth * 0.8,
+            _y + finalWidth * 0.3,
+            _x + finalWidth * 0.88,
+            _y + finalWidth * 0.88,
+            _x + finalWidth * 0.12,
+            _y + finalWidth * 0.88,
+            _x + finalWidth * 0.2,
+            _y + finalWidth * 0.3,
+          ],
+          fill: "#f6c9a5",
+          stroke: "black",
+          strokeWidth: 2,
+
+          closed: true,
+        });
+
+        layer.add(polygon);
+      } else if (piece_mode === 22) {
+        let _x = board_x + j * finalWidth;
+        let _y = board_y + i * finalWidth;
+        const polygon = new Konva.Line({
+          points: [
+            _x + finalWidth * 0.5,
+            _y + finalWidth * 0.88,
+            _x + finalWidth * 0.8,
+            _y + finalWidth * 0.7,
+            _x + finalWidth * 0.88,
+            _y + finalWidth * 0.12,
+            _x + finalWidth * 0.12,
+            _y + finalWidth * 0.12,
+            _x + finalWidth * 0.2,
+            _y + finalWidth * 0.7,
+          ],
+          fill: "#f6c9a5",
+          stroke: "black",
+          strokeWidth: 2,
+
+          closed: true,
+        });
+
+        layer.add(polygon);
+      } else if (piece_mode === 23) {
+        let _x = board_x + j * finalWidth;
+        let _y = board_y + i * finalWidth;
+        const polygon = new Konva.Line({
+          points: [
+            _x + finalWidth * 0.12,
+            _y + finalWidth * 0.5,
+            _x + finalWidth * 0.3,
+            _y + finalWidth * 0.8,
+            _x + finalWidth * 0.88,
+            _y + finalWidth * 0.88,
+            _x + finalWidth * 0.88,
+            _y + finalWidth * 0.12,
+            _x + finalWidth * 0.3,
+            _y + finalWidth * 0.2,
+          ],
+          fill: "#f6c9a5",
+          stroke: "black",
+          strokeWidth: 2,
+
+          closed: true,
+        });
+
+        layer.add(polygon);
+      } else if (piece_mode === 24) {
+        let _x = board_x + j * finalWidth;
+        let _y = board_y + i * finalWidth;
+        const polygon = new Konva.Line({
+          points: [
+            _x + finalWidth * 0.88,
+            _y + finalWidth * 0.5,
+            _x + finalWidth * 0.7,
+            _y + finalWidth * 0.8,
+            _x + finalWidth * 0.12,
+            _y + finalWidth * 0.88,
+            _x + finalWidth * 0.12,
+            _y + finalWidth * 0.12,
+            _x + finalWidth * 0.7,
+            _y + finalWidth * 0.2,
+          ],
+          fill: "#f6c9a5",
+          stroke: "black",
+          strokeWidth: 2,
+
+          closed: true,
+        });
+
+        layer.add(polygon);
+      } else if (piece_mode === 31) {
+        let _x = board_x + j * finalWidth;
+        let _y = board_y + i * finalWidth;
+        const polygon = new Konva.Line({
+          points: [
+            _x + finalWidth * 0.5,
+            _y + finalWidth * 0.12,
+            _x + finalWidth * 0.8,
+            _y + finalWidth * 0.3,
+            _x + finalWidth * 0.88,
+            _y + finalWidth * 0.88,
+            _x + finalWidth * 0.12,
+            _y + finalWidth * 0.88,
+            _x + finalWidth * 0.2,
+            _y + finalWidth * 0.3,
+          ],
+          fill: "#f6c9a5",
+          stroke: "#c7edcc",
+          strokeWidth: 2,
+
+          closed: true,
+        });
+
+        layer.add(polygon);
+      } else if (piece_mode === 32) {
+        let _x = board_x + j * finalWidth;
+        let _y = board_y + i * finalWidth;
+        const polygon = new Konva.Line({
+          points: [
+            _x + finalWidth * 0.5,
+            _y + finalWidth * 0.88,
+            _x + finalWidth * 0.8,
+            _y + finalWidth * 0.7,
+            _x + finalWidth * 0.88,
+            _y + finalWidth * 0.12,
+            _x + finalWidth * 0.12,
+            _y + finalWidth * 0.12,
+            _x + finalWidth * 0.2,
+            _y + finalWidth * 0.7,
+          ],
+          fill: "#f6c9a5",
+          stroke: "#c7edcc",
+          strokeWidth: 2,
+
+          closed: true,
+        });
+
+        layer.add(polygon);
+      } else if (piece_mode === 33) {
+        let _x = board_x + j * finalWidth;
+        let _y = board_y + i * finalWidth;
+        const polygon = new Konva.Line({
+          points: [
+            _x + finalWidth * 0.12,
+            _y + finalWidth * 0.5,
+            _x + finalWidth * 0.3,
+            _y + finalWidth * 0.8,
+            _x + finalWidth * 0.88,
+            _y + finalWidth * 0.88,
+            _x + finalWidth * 0.88,
+            _y + finalWidth * 0.12,
+            _x + finalWidth * 0.3,
+            _y + finalWidth * 0.2,
+          ],
+          fill: "#f6c9a5",
+          stroke: "#c7edcc",
+          strokeWidth: 2,
+
+          closed: true,
+        });
+
+        layer.add(polygon);
+      } else if (piece_mode === 34) {
+        let _x = board_x + j * finalWidth;
+        let _y = board_y + i * finalWidth;
+        const polygon = new Konva.Line({
+          points: [
+            _x + finalWidth * 0.88,
+            _y + finalWidth * 0.5,
+            _x + finalWidth * 0.7,
+            _y + finalWidth * 0.8,
+            _x + finalWidth * 0.12,
+            _y + finalWidth * 0.88,
+            _x + finalWidth * 0.12,
+            _y + finalWidth * 0.12,
+            _x + finalWidth * 0.7,
+            _y + finalWidth * 0.2,
+          ],
+          fill: "#f6c9a5",
+          stroke: "#c7edcc",
+          strokeWidth: 2,
+
+          closed: true,
+        });
+
+        layer.add(polygon);
+      }
     }
   }
 }
