@@ -6,7 +6,7 @@ use std::{
         Arc,
     },
     thread,
-    time::Duration,
+    time::{self, Duration},
 };
 
 use crate::{
@@ -27,7 +27,6 @@ use tokio::{
 
 pub struct PlayerSocket {
     pub player: Arc<Mutex<Player>>,
-    running: Arc<AtomicBool>,
     tasks: Vec<JoinHandle<()>>,
 }
 
@@ -36,12 +35,8 @@ impl PlayerSocket {
         let mut stream = TcpStream::connect(ip).await?;
         let (mut read_stream, mut write_stream) = stream.into_split();
 
-        let running = Arc::new(AtomicBool::new(true));
-        let running_read = Arc::clone(&running);
-        let running_write = Arc::clone(&running);
-        let running_keeplive = Arc::clone(&running);
-
         let (send_tx, mut send_rx) = mpsc::unbounded_channel::<Vec<u8>>();
+        let tx1 = send_tx.clone();
 
         let player = Arc::new(Mutex::new(Player::new(send_tx, tab_id, app)));
         let player_read = Arc::clone(&player);
@@ -50,10 +45,9 @@ impl PlayerSocket {
         let read_task = tokio::spawn(async move {
             let mut buffer = [0; 2048]; // Temporary buffer for reading from socket
             let mut data_buffer: VecDeque<u8> = VecDeque::new();
-            while running_read.load(Ordering::Relaxed) {
+            loop {
                 match read_stream.read(&mut buffer).await {
                     Ok(0) => {
-                        running_read.store(false, Ordering::Relaxed);
                         break;
                     }
                     Ok(n) => {
@@ -92,20 +86,20 @@ impl PlayerSocket {
                     }
                     Err(e) => {
                         println!("{}", e);
-                        running_read.store(false, Ordering::Relaxed);
+                        break;
                     }
                 }
             }
         });
 
         let write_task = tokio::spawn(async move {
-            while running_write.load(Ordering::Relaxed) {
+            'outer: loop {
                 while let Some(msg) = send_rx.recv().await {
                     match write_stream.write_all(&msg).await {
                         Ok(_) => {}
                         Err(e) => {
-                            running_write.store(false, Ordering::Relaxed);
                             listen::show_toast(e.to_string().as_str(), "error");
+                            break 'outer;
                         }
                     }
 
@@ -115,17 +109,24 @@ impl PlayerSocket {
         });
 
         let keeplive_task = tokio::spawn(async move {
-            while running_keeplive.load(Ordering::Relaxed) {
-                thread::sleep(Duration::from_secs(30));
+            loop {
+                tokio::time::sleep(Duration::from_secs(25)).await;
                 let msg = Msger::KeepLive.to_msg("Ok".to_string());
-                player_keeplive.lock().await.send(msg).await;
-                println!("keeplive");
+                tx1.send(msg);
+                let now = time::SystemTime::now();
+                let epoch = now
+                    .duration_since(time::SystemTime::UNIX_EPOCH)
+                    .unwrap_or_default();
+                let seconds = epoch.as_secs() % 86400; // 当天秒数
+                let hour = (seconds / 3600) % 24;
+                let minute = (seconds % 3600) / 60;
+                let second = seconds % 60;
+                println!("keeplive: {:02}:{:02}:{:02}", hour, minute, second);
             }
         });
 
         Ok(Self {
             player,
-            running,
             tasks: vec![read_task, write_task, keeplive_task],
         })
     }
@@ -139,7 +140,6 @@ impl PlayerSocket {
     }
 
     pub async fn close(&self) -> Result<()> {
-        self.running.store(false, Ordering::Relaxed);
         for task in &self.tasks {
             task.abort();
         }
@@ -149,7 +149,7 @@ impl PlayerSocket {
 
 impl Drop for PlayerSocket {
     fn drop(&mut self) {
-        self.running.store(false, Ordering::Relaxed);
+        self.close();
     }
 }
 
