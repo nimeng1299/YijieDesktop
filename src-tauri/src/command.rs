@@ -1,25 +1,15 @@
-use dashmap::DashMap;
-use lazy_static::lazy_static;
-
 use crate::{
     listen::show_toast,
-    player,
+    player::{self, Data},
     socket::msger::Msger,
-    tauris::{
-        base, create_tab_datas, create_tab_title, delete_tab_title, get_tab_data, tab_data::TabData,
-    },
+    tauris::{base, PLAYER_SOCKET},
 };
 
-lazy_static! {
-    pub static ref PLAYER_MAP: DashMap<u32, player::PlayerSocket> = DashMap::new();
-}
 //必须在启动后就调用
 #[tauri::command]
 pub fn init_app(app: tauri::AppHandle) {
     if !base::TAURI_INIT.load(std::sync::atomic::Ordering::Relaxed) {
         base::APP.set(app).unwrap();
-        //创建第一个窗口
-        create_tab_title();
 
         base::TAURI_INIT.store(true, std::sync::atomic::Ordering::Relaxed);
     }
@@ -31,35 +21,24 @@ pub fn need_show_toast(message: &str, toast_type: &str) {
     show_toast(message, toast_type);
 }
 
-//添加Tab
-#[tauri::command]
-pub fn add_tab_main() {
-    create_tab_title();
-}
-
-//删除Tab
-#[tauri::command]
-pub fn close_tab(tab_id: u32) {
-    delete_tab_title(tab_id);
-}
-
 /// 刷新数据
 #[tauri::command]
-pub fn refresh_data(tab_id: u32) -> Result<TabData, String> {
-    get_tab_data(tab_id).map_err(|e| e.to_string())
+pub async fn refresh_data() -> Result<Data, String> {
+    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
+        Ok(player_socket.get_player().await.get_data())
+    } else {
+        Err("player not exists".to_string())
+    }
 }
 
 #[tauri::command]
-pub async fn login(app: tauri::AppHandle, tab_id: u32, ip: &str, name: &str) -> Result<(), String> {
+pub async fn login(app: tauri::AppHandle, ip: &str, name: &str) -> Result<(), String> {
     let ip = if ip.is_empty() {
         "47.100.88.110:20003"
     } else {
         ip
     };
-    if PLAYER_MAP.contains_key(&tab_id) {
-        PLAYER_MAP.remove(&tab_id);
-    }
-    let mut player_socket = player::PlayerSocket::connect(app, tab_id, ip)
+    let player_socket = player::PlayerSocket::connect(app, ip)
         .await
         .map_err(|e| e.to_string())?;
 
@@ -97,25 +76,14 @@ pub async fn login(app: tauri::AppHandle, tab_id: u32, ip: &str, name: &str) -> 
     if !login_success {
         return Err("login failed".to_string());
     }
-    PLAYER_MAP.insert(tab_id, player_socket);
-    create_tab_datas(tab_id);
+    PLAYER_SOCKET.insert(0, player_socket);
     show_toast("登录请求中...", "info");
     Ok(())
 }
 
 #[tauri::command]
-pub fn close(tab_id: u32) -> Result<(), String> {
-    if !PLAYER_MAP.contains_key(&tab_id) {
-        return Err("player not exists".to_string());
-    }
-    let (_, player_socket) = PLAYER_MAP.remove(&tab_id).unwrap();
-    player_socket.close();
-    Ok(())
-}
-
-#[tauri::command]
-pub async fn request_enter_room(tab_id: u32, room_name: &str) -> Result<(), String> {
-    if let Some(player_socket) = PLAYER_MAP.get(&tab_id) {
+pub async fn request_enter_room(room_name: &str) -> Result<(), String> {
+    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
         player_socket
             .get_player()
             .await
@@ -128,8 +96,8 @@ pub async fn request_enter_room(tab_id: u32, room_name: &str) -> Result<(), Stri
 }
 
 #[tauri::command]
-pub async fn request_be_chess_player(tab_id: u32, side: &str) -> Result<(), String> {
-    if let Some(player_socket) = PLAYER_MAP.get(&tab_id) {
+pub async fn request_be_chess_player(side: &str) -> Result<(), String> {
+    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
         player_socket
             .get_player()
             .await
@@ -143,8 +111,8 @@ pub async fn request_be_chess_player(tab_id: u32, side: &str) -> Result<(), Stri
 
 //让座
 #[tauri::command]
-pub async fn request_leave_seat(tab_id: u32) -> Result<(), String> {
-    if let Some(player_socket) = PLAYER_MAP.get(&tab_id) {
+pub async fn request_leave_seat() -> Result<(), String> {
+    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
         player_socket
             .get_player()
             .await
@@ -158,8 +126,8 @@ pub async fn request_leave_seat(tab_id: u32) -> Result<(), String> {
 
 //认输
 #[tauri::command]
-pub async fn request_admit_defeat(tab_id: u32) -> Result<(), String> {
-    if let Some(player_socket) = PLAYER_MAP.get(&tab_id) {
+pub async fn request_admit_defeat() -> Result<(), String> {
+    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
         player_socket
             .get_player()
             .await
@@ -173,8 +141,8 @@ pub async fn request_admit_defeat(tab_id: u32) -> Result<(), String> {
 
 //按钮requestCustomBottomEvent
 #[tauri::command]
-pub async fn request_custom_bottom_event(tab_id: u32, event: &str) -> Result<(), String> {
-    if let Some(player_socket) = PLAYER_MAP.get(&tab_id) {
+pub async fn request_custom_bottom_event(event: &str) -> Result<(), String> {
+    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
         player_socket
             .get_player()
             .await
@@ -188,8 +156,8 @@ pub async fn request_custom_bottom_event(tab_id: u32, event: &str) -> Result<(),
 
 //落子
 #[tauri::command]
-pub async fn request_move_later(tab_id: u32, x: u32, y: u32) -> Result<(), String> {
-    if let Some(player_socket) = PLAYER_MAP.get(&tab_id) {
+pub async fn request_move_later(x: u32, y: u32) -> Result<(), String> {
+    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
         player_socket
             .get_player()
             .await
@@ -203,8 +171,8 @@ pub async fn request_move_later(tab_id: u32, x: u32, y: u32) -> Result<(), Strin
 
 /// 请求离开房间
 #[tauri::command]
-pub async fn request_leave_room(tab_id: u32) -> Result<(), String> {
-    if let Some(player_socket) = PLAYER_MAP.get(&tab_id) {
+pub async fn request_leave_room() -> Result<(), String> {
+    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
         player_socket
             .get_player()
             .await

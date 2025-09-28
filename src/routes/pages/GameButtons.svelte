@@ -1,19 +1,19 @@
 <script>
     import { invoke } from "@tauri-apps/api/core";
 
-    let { tabId, buttons } = $props();
+    let { buttons } = $props();
 
     function leaveSeat() {
-        invoke("request_leave_seat", { tabId: tabId });
+        invoke("request_leave_seat", {});
     }
     function admitDefeat() {
-        invoke("request_admit_defeat", { tabId: tabId });
+        invoke("request_admit_defeat", {});
     }
     function LeaveRoom() {
-        invoke("request_leave_room", { tabId: tabId });
+        invoke("request_leave_room", {});
     }
     function customBottomEvent(event) {
-        invoke("request_custom_bottom_event", { tabId: tabId, event: event });
+        invoke("request_custom_bottom_event", { event: event });
     }
 </script>
 

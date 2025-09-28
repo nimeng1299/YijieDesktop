@@ -6,8 +6,6 @@
     import { invoke } from "@tauri-apps/api/core";
     import { listen } from "@tauri-apps/api/event";
 
-    let { tabId } = $props();
-
     let menuVisible = $state(false);
     let menuPosition = $state([0, 0]);
 
@@ -48,73 +46,55 @@
     let can_move = $state(false);
 
     listen("change_mode", (event) => {
-        const [tabId_, mode] = event.payload;
-        if (tabId_ === tabId) {
-            modes = mode;
-        }
+        const mode = event.payload;
+        modes = mode;
     });
 
     listen("change_account", (event) => {
-        const [tabId_, account_] = event.payload;
-        if (tabId_ === tabId) {
-            account = account_;
-        }
+        const account_ = event.payload;
+        account = account_;
     });
 
     listen("change_to_hall", (event) => {
-        const [tabId_, roomList] = event.payload;
-        console.log("change_to_hall", tabId_, roomList);
-        if (tabId === tabId_) {
-            roomdata = roomList;
-        }
+        const roomList = event.payload;
+        console.log("change_to_hall", roomList);
+        roomdata = roomList;
     });
 
     listen("change_to_room", (event) => {
-        const [tabId_, room_] = event.payload;
-        console.log("change_to_room", tabId_, room_);
-        if (tabId === tabId_) {
-            room = room_;
-        }
+        const room_ = event.payload;
+        console.log("change_to_room", room_);
+        room = room_;
     });
 
     listen("update_game", (event) => {
-        const [tabId_, game_] = event.payload;
-        console.log("update_game", tabId_, game_);
-        if (tabId === tabId_) {
-            game = game_;
-        }
+        const game_ = event.payload;
+        console.log("update_game", game_);
+        game = game_;
     });
 
     listen("dispatch_custom_bottom", (event) => {
-        const [tabId_, buttons_] = event.payload;
-        console.log("dispatch_custom_bottom", tabId_, buttons_);
-        if (tabId === tabId_ && buttons_[0] !== "-1") {
+        const buttons_ = event.payload;
+        console.log("dispatch_custom_bottom", buttons_);
+        if (buttons_[0] !== "-1") {
             buttons = buttons_;
         }
     });
 
     listen("refresh_countdown", (event) => {
-        const [tabId_, countdown_] = event.payload;
-        console.log("refresh_countdown", tabId_, countdown_);
-        if (tabId === tabId_) {
-            countdown = countdown_;
-        }
+        const countdown_ = event.payload;
+        console.log("refresh_countdown", countdown_);
+        countdown = countdown_;
     });
 
     listen("you_can_move", (event) => {
         console.log("you_can_move");
-        const tabId_ = event.payload;
-        if (tabId === tabId_) {
-            can_move = true;
-        }
+        can_move = true;
     });
 
     listen("you_not_move", (event) => {
         console.log("you_not_move");
-        const tabId_ = event.payload;
-        if (tabId === tabId_) {
-            can_move = false;
-        }
+        can_move = false;
     });
 
     // 右键菜单
@@ -126,7 +106,7 @@
 
     // 刷新数据
     function refresh_data() {
-        invoke("refresh_data", { tabId }).then((datas) => {
+        invoke("refresh_data", {}).then((datas) => {
             roomdata = datas["roomdata"];
             account = datas["account"];
             room = datas["room"];
@@ -148,15 +128,15 @@
     }}
 >
     {#if modes === "login"}
-        <Login {tabId} />
+        <Login />
     {:else if modes === "roomlist"}
-        <RoomList tab_id={tabId} datas={roomdata} {account} />
+        <RoomList datas={roomdata} {account} />
     {:else if modes === "game"}
-        <Game {tabId} {room} {game} {buttons} {countdown} {can_move} />
+        <Game {room} {game} {buttons} {countdown} {can_move} />
     {:else}
         <input
             type="text"
-            placeholder="Tab {tabId} content"
+            placeholder="Tab  content"
             class="input input-bordered w-full max-w-xs"
         />
     {/if}

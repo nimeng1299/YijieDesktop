@@ -14,10 +14,10 @@ use crate::{
     content::{game::Game, hall_room_list::HallRoomList, room::Room},
     listen,
     socket::msger::{self, Msger},
-    tauris::{change_tab_title, do_tab_datas},
 };
 use anyhow::{anyhow, bail, Result};
 use java_string::JavaString;
+use serde::{Deserialize, Serialize};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::TcpStream,
@@ -31,14 +31,14 @@ pub struct PlayerSocket {
 }
 
 impl PlayerSocket {
-    pub async fn connect(app: tauri::AppHandle, tab_id: u32, ip: &str) -> Result<Self> {
+    pub async fn connect(app: tauri::AppHandle, ip: &str) -> Result<Self> {
         let mut stream = TcpStream::connect(ip).await?;
         let (mut read_stream, mut write_stream) = stream.into_split();
 
         let (send_tx, mut send_rx) = mpsc::unbounded_channel::<Vec<u8>>();
         let tx1 = send_tx.clone();
 
-        let player = Arc::new(Mutex::new(Player::new(send_tx, tab_id, app)));
+        let player = Arc::new(Mutex::new(Player::new(send_tx, app)));
         let player_read = Arc::clone(&player);
         let player_keeplive = Arc::clone(&player);
 
@@ -159,22 +159,18 @@ pub struct Player {
     pub isConnected: bool,
 
     app: tauri::AppHandle,
-    tab_id: u32,
+    data: Data,
 
     pub isLogin: bool,
 }
 
 impl Player {
-    pub fn new(
-        send_tx: mpsc::UnboundedSender<Vec<u8>>,
-        tab_id: u32,
-        app: tauri::AppHandle,
-    ) -> Self {
+    pub fn new(send_tx: mpsc::UnboundedSender<Vec<u8>>, app: tauri::AppHandle) -> Self {
         Player {
             send_tx,
             isConnected: false,
-            tab_id,
             app,
+            data: Data::default(),
             isLogin: false,
         }
     }
@@ -196,26 +192,19 @@ impl Player {
             Msger::LoginSuccess => {
                 println!("login success");
                 self.isLogin = true;
-                change_tab_title(self.app.clone(), self.tab_id, msg);
             }
             Msger::RefreshRoomList => {
                 let room_list = HallRoomList::from_string(msg);
                 println!("refresh room list {}", room_list.rooms.len());
-                do_tab_datas(self.tab_id, |data| {
-                    data.change_to_hall(self.app.clone(), self.tab_id, room_list);
-                });
+                self.data.change_to_hall(self.app.clone(), room_list);
             }
             Msger::RefreshPlayerInfo => {
                 let account = Account::from_msg(msg)?;
-                do_tab_datas(self.tab_id, |data| {
-                    data.change_account(self.app.clone(), self.tab_id, account);
-                });
+                self.data.change_account(self.app.clone(), account);
             }
             Msger::RefreshRoomInfo => match Room::from_msg(msg) {
                 Ok(room) => {
-                    do_tab_datas(self.tab_id, |data| {
-                        data.change_to_room(self.app.clone(), self.tab_id, room.clone());
-                    });
+                    self.data.change_to_room(self.app.clone(), room.clone());
                 }
                 Err(e) => {
                     println!("change_to_room error: {}", e);
@@ -223,9 +212,7 @@ impl Player {
             },
             Msger::RefreshGameInfo => match Game::from_msg(msg) {
                 Ok(game) => {
-                    do_tab_datas(self.tab_id, |data| {
-                        data.update_game(self.app.clone(), self.tab_id, game);
-                    });
+                    self.data.update_game(self.app.clone(), game);
                 }
                 Err(e) => {
                     println!("update_game error: {}", e);
@@ -236,26 +223,18 @@ impl Player {
                 if buttons.len() == 1 && buttons[0] == "-1" {
                     buttons = Vec::new();
                 }
-                do_tab_datas(self.tab_id, |data| {
-                    data.dispatch_custom_bottom(self.app.clone(), self.tab_id, buttons);
-                })
+                self.data.dispatch_custom_bottom(self.app.clone(), buttons);
             }
             Msger::RefreshCountdown => {
                 let countdown: Vec<&str> = msg.split('&').collect();
                 let countdown = (countdown[0].parse()?, countdown[1].parse()?);
-                do_tab_datas(self.tab_id, |data| {
-                    data.refresh_countdown(self.app.clone(), self.tab_id, countdown);
-                });
+                self.data.refresh_countdown(self.app.clone(), countdown);
             }
             Msger::YouCanMove => {
-                do_tab_datas(self.tab_id, |data| {
-                    data.change_move(self.app.clone(), self.tab_id, true);
-                });
+                self.data.change_move(self.app.clone(), true);
             }
             Msger::YouNotMove => {
-                do_tab_datas(self.tab_id, |data| {
-                    data.change_move(self.app.clone(), self.tab_id, false);
-                });
+                self.data.change_move(self.app.clone(), false);
             }
             Msger::WinMessage | Msger::GameStart => {
                 listen::show_toast(msg.as_str(), "success");
@@ -285,5 +264,109 @@ impl Player {
         } else {
             bail!("need login!")
         }
+    }
+
+    pub fn get_data(&self) -> Data {
+        self.data.clone()
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Data {
+    mode: String,
+    roomdata: HallRoomList,
+    account: Account,
+    room: Room,
+    game: Game,
+    countdown: (i32, i32),
+    buttons: Vec<String>,
+    can_move: bool,
+}
+
+impl Data {
+    pub fn change_mode(&mut self, app: tauri::AppHandle, mode: Modes) {
+        self.mode = mode.to_string();
+        listen::change_mode(app, mode.to_string());
+    }
+
+    pub fn change_to_hall(&mut self, app: tauri::AppHandle, room_list: HallRoomList) {
+        self.roomdata = room_list.clone();
+        self.change_mode(app.clone(), Modes::RoomList);
+        listen::change_to_hall(app, room_list);
+    }
+
+    pub fn change_account(&mut self, app: tauri::AppHandle, account: Account) {
+        self.account = account.clone();
+        listen::change_account(app, account);
+    }
+
+    pub fn change_to_room(&mut self, app: tauri::AppHandle, room: Room) {
+        self.room = room.clone();
+        self.change_mode(app.clone(), Modes::Game);
+        listen::change_to_room(app, room);
+    }
+
+    pub fn update_game(&mut self, app: tauri::AppHandle, game: Game) {
+        self.game = game.clone();
+        listen::update_game(app, game);
+    }
+
+    pub fn dispatch_custom_bottom(&mut self, app: tauri::AppHandle, buttons: Vec<String>) {
+        self.buttons = buttons.clone();
+        listen::dispatch_custom_bottom(app, buttons);
+    }
+
+    pub fn refresh_countdown(&mut self, app: tauri::AppHandle, countdown: (i32, i32)) {
+        self.countdown = countdown;
+        listen::refresh_countdown(app, countdown);
+    }
+
+    pub fn change_move(&mut self, app: tauri::AppHandle, can_move: bool) {
+        self.can_move = can_move;
+        if can_move {
+            listen::you_can_move(app);
+        } else {
+            listen::you_not_move(app);
+        }
+    }
+}
+
+impl Default for Data {
+    fn default() -> Self {
+        Self {
+            mode: Modes::default().to_string(),
+            roomdata: HallRoomList::default(),
+            account: Account::default(),
+            room: Room::default(),
+            game: Game::default(),
+            countdown: (0, 0),
+            buttons: vec![],
+            can_move: false,
+        }
+    }
+}
+
+//界面 mode
+#[derive(Debug)]
+pub enum Modes {
+    Login,
+    RoomList,
+    Game,
+}
+
+impl Modes {
+    fn to_string(&self) -> String {
+        let str = match self {
+            Self::Login => "login",
+            Self::RoomList => "roomlist",
+            Self::Game => "game",
+        };
+        str.to_string()
+    }
+}
+
+impl Default for Modes {
+    fn default() -> Self {
+        Self::Login
     }
 }

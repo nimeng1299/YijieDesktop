@@ -4,7 +4,7 @@
     import * as drawb from "./drawb";
     import Konva from "konva";
 
-    let { tabId, game, can_move } = $props();
+    let { game, can_move } = $props();
     let { finalWidth } = $state(200);
     let { canvasWidth } = $state(200);
     let { board_x } = $state(0);
@@ -144,7 +144,7 @@
             ) {
                 //x y反过来
                 console.log("click", y, x);
-                invoke("request_move_later", { tabId: tabId, x: y, y: x });
+                invoke("request_move_later", { x: y, y: x });
             }
         });
 

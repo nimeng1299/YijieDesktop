@@ -15,65 +15,58 @@ pub fn show_toast(message: &str, toast_type: &str) {
         .unwrap();
 }
 
-//标签发生修改
 #[tauri::command]
-pub fn change_tabs(app: tauri::AppHandle, tabs: Vec<(u32, String)>) {
-    app.emit("change_tabs", tabs).unwrap();
-}
-
-#[tauri::command]
-pub fn login_success(app: tauri::AppHandle, tab_id: u32, name: String) {
-    app.emit("login_success", (tab_id, name)).unwrap();
+pub fn login_success(app: tauri::AppHandle, name: String) {
+    app.emit("login_success", name).unwrap();
 }
 
 /// 用户位置改变 登录/大厅/房间/...
 #[tauri::command]
-pub fn change_mode(app: tauri::AppHandle, tab_id: u32, mode: String) {
-    app.emit("change_mode", (tab_id, mode)).unwrap();
+pub fn change_mode(app: tauri::AppHandle, mode: String) {
+    app.emit("change_mode", mode).unwrap();
 }
 
 #[tauri::command]
-pub fn change_to_hall(app: tauri::AppHandle, tab_id: u32, room_list: HallRoomList) {
-    app.emit("change_to_hall", (tab_id, room_list)).unwrap();
+pub fn change_to_hall(app: tauri::AppHandle, room_list: HallRoomList) {
+    app.emit("change_to_hall", room_list).unwrap();
 }
 
 #[tauri::command]
-pub fn change_to_room(app: tauri::AppHandle, tab_id: u32, room: Room) {
-    app.emit("change_to_room", (tab_id, room)).unwrap();
+pub fn change_to_room(app: tauri::AppHandle, room: Room) {
+    app.emit("change_to_room", room).unwrap();
 }
 
 #[tauri::command]
-pub fn change_account(app: tauri::AppHandle, tab_id: u32, account: Account) {
-    app.emit("change_account", (tab_id, account)).unwrap();
+pub fn change_account(app: tauri::AppHandle, account: Account) {
+    app.emit("change_account", account).unwrap();
 }
 
 /// 棋盘更新
 #[tauri::command]
-pub fn update_game(app: tauri::AppHandle, tab_id: u32, game: Game) {
-    app.emit("update_game", (tab_id, game)).unwrap();
+pub fn update_game(app: tauri::AppHandle, game: Game) {
+    app.emit("update_game", game).unwrap();
 }
 
 /// 按钮渲染
 #[tauri::command]
-pub fn dispatch_custom_bottom(app: tauri::AppHandle, tab_id: u32, buttons: Vec<String>) {
-    app.emit("dispatch_custom_bottom", (tab_id, buttons))
-        .unwrap();
+pub fn dispatch_custom_bottom(app: tauri::AppHandle, buttons: Vec<String>) {
+    app.emit("dispatch_custom_bottom", buttons).unwrap();
 }
 
 /// 倒计时更新
 #[tauri::command]
-pub fn refresh_countdown(app: tauri::AppHandle, tab_id: u32, countdown: (i32, i32)) {
-    app.emit("refresh_countdown", (tab_id, countdown)).unwrap();
+pub fn refresh_countdown(app: tauri::AppHandle, countdown: (i32, i32)) {
+    app.emit("refresh_countdown", countdown).unwrap();
 }
 
 #[tauri::command]
-pub fn you_can_move(app: tauri::AppHandle, tab_id: u32) {
+pub fn you_can_move(app: tauri::AppHandle) {
     println!("you_can_move");
-    app.emit("you_can_move", tab_id).unwrap();
+    app.emit("you_can_move", ()).unwrap();
 }
 
 #[tauri::command]
-pub fn you_not_move(app: tauri::AppHandle, tab_id: u32) {
+pub fn you_not_move(app: tauri::AppHandle) {
     println!("you_not_move");
-    app.emit("you_not_move", tab_id).unwrap();
+    app.emit("you_not_move", ()).unwrap();
 }

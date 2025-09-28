@@ -1,7 +1,7 @@
 <script>
     import { invoke } from "@tauri-apps/api/core";
     import { onDestroy } from "svelte";
-    let { tabId, player, score, side, countdown } = $props();
+    let { player, score, side, countdown } = $props();
     let dateNow = $state(Date.now());
 
     // 定义一个计时器，每秒更新一次 dateNow 的值
@@ -9,10 +9,10 @@
         dateNow = Date.now();
     }, 1000);
 
-// 组件卸载时清除计时器，防止内存泄漏
-onDestroy(() => {
-    clearInterval(timer);
-});
+    // 组件卸载时清除计时器，防止内存泄漏
+    onDestroy(() => {
+        clearInterval(timer);
+    });
     function getPlayerName(player) {
         if (player === "-1") {
             return "未加入";
@@ -37,9 +37,9 @@ onDestroy(() => {
     }
     function toBePlayer() {
         if (side === "black") {
-            invoke("request_be_chess_player", { tabId: tabId, side: "1" });
+            invoke("request_be_chess_player", { side: "1" });
         } else {
-            invoke("request_be_chess_player", { tabId: tabId, side: "2" });
+            invoke("request_be_chess_player", { side: "2" });
         }
     }
 
@@ -63,6 +63,8 @@ onDestroy(() => {
             >
         </div>
         <p hidden={getScoreHidden(score)}>得分：{score}</p>
-        <p hidden={getCountdownHidden(countdown - dateNow / 1000)}>倒计时：{ Math.floor(countdown -dateNow / 1000)}</p>
+        <p hidden={getCountdownHidden(countdown - dateNow / 1000)}>
+            倒计时：{Math.floor(countdown - dateNow / 1000)}
+        </p>
     </div>
 </div>
