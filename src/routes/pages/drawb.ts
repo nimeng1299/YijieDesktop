@@ -362,7 +362,101 @@ export function drawSignAfter(
       });
       layer.add(text);
     } else if (k === "TitleSign") {
-      //
+      let targetX = board_x + finalWidth * cols_len * v.position_x - 1; //-1 看起来更能居中
+      let targetY = board_y + finalWidth * rows_len * v.position_y;
+
+      if (v.direction === 0) {
+        //横向居中
+        let text = new Konva.Text({
+          x: targetX,
+          y: targetY,
+          text: v.title,
+          height: finalWidth,
+          fontSize: finalWidth * v.size,
+          align: "center",
+          verticalAlign: "middle",
+          fontFamily: "微软雅黑",
+          fill: convertColorFormat(v.color),
+        });
+        text = text.setAttr("x", targetX - text.width() / 2);
+        text = text.setAttr("y", targetY - text.height() / 2);
+        layer.add(text);
+      } else if (v.direction === 1) {
+        //纵向居中
+        const characters = [...v.title];
+        //示例文字，用于计算宽高
+        let simple = new Konva.Text({
+          x: 0,
+          y: 0,
+          text: "坤",
+          height: finalWidth,
+          fontSize: finalWidth * v.size,
+          align: "center",
+          verticalAlign: "middle",
+          fontFamily: "微软雅黑",
+          fill: convertColorFormat(v.color),
+        });
+        characters.forEach((char, index) => {
+          const charText = new Konva.Text({
+            x: targetX - simple.width() / 2,
+            y: targetY + index * simple.height() - simple.height() / 2,
+            width: simple.width(),
+            height: simple.height(),
+            text: char,
+            fontSize: finalWidth * v.size,
+            fontFamily: "微软雅黑",
+            verticalAlign: "middle",
+            fill: convertColorFormat(v.color),
+          });
+
+          layer.add(charText);
+        });
+      } else if (v.direction === 2) {
+        //向右延申
+        let text = new Konva.Text({
+          x: targetX,
+          y: targetY,
+          text: v.title,
+          height: finalWidth,
+          fontSize: finalWidth * v.size,
+          align: "center",
+          verticalAlign: "middle",
+          fontFamily: "微软雅黑",
+          fill: convertColorFormat(v.color),
+        });
+        text = text.setAttr("y", targetY - text.height() / 2);
+        layer.add(text);
+      } else if (v.direction === 3) {
+        //向下延申
+        const characters = [...v.title];
+        //示例文字，用于计算宽高
+        let simple = new Konva.Text({
+          x: 0,
+          y: 0,
+          text: "坤",
+          height: finalWidth,
+          fontSize: finalWidth * v.size,
+          align: "center",
+          verticalAlign: "middle",
+          fontFamily: "微软雅黑",
+          fill: convertColorFormat(v.color),
+        });
+        characters.forEach((char, index) => {
+          const charText = new Konva.Text({
+            x: targetX - simple.width() / 2,
+            y: targetY + index * simple.height(),
+            width: simple.width(),
+            height: simple.height(),
+            text: char,
+            fontSize: finalWidth * v.size,
+            fontFamily: "微软雅黑",
+            verticalAlign: "middle",
+            fill: convertColorFormat(v.color),
+          });
+
+          layer.add(charText);
+        });
+      }
     }
   }
 }
@@ -584,8 +678,6 @@ export function drawPiece(
         });
         layer.add(shape);
       } else if (piece_mode === 9) {
-        console.log(j, i);
-
         //绘制围墙
         const shape = new Konva.Shape({
           x: board_x + j * finalWidth,
