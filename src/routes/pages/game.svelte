@@ -4,10 +4,10 @@
     import GameCard from "./GameCard.svelte";
     import GameSpectator from "./GameSpectator.svelte";
 
-    let { room, game, buttons, countdown, can_move } = $props();
+    let { room, game, buttons, countdown, can_move, modes } = $props();
 </script>
 
-<div class="game-container">
+<div class="game-container" hidden={modes !== "game"}>
     <div class="game-left">
         <div class="gamecard">
             <GameCard

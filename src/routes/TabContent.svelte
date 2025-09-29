@@ -127,19 +127,9 @@
         menuVisible = false;
     }}
 >
-    {#if modes === "login"}
-        <Login />
-    {:else if modes === "roomlist"}
-        <RoomList datas={roomdata} {account} />
-    {:else if modes === "game"}
-        <Game {room} {game} {buttons} {countdown} {can_move} />
-    {:else}
-        <input
-            type="text"
-            placeholder="Tab  content"
-            class="input input-bordered w-full max-w-xs"
-        />
-    {/if}
+    <Login {modes} />
+    <RoomList datas={roomdata} {account} {modes} />
+    <Game {room} {game} {buttons} {countdown} {can_move} {modes} />
 
     {#if menuVisible}
         <ul

@@ -99,6 +99,7 @@ export function drawCoord(
   rows_len,
   finalWidth,
 ) {
+  // x, y 加 1 为了防止 0 的线画不出来
   // 绘制横向
   let row_count = 0; //计数
   //绘制上方横向坐标
@@ -113,8 +114,8 @@ export function drawCoord(
       i++
     ) {
       let complexText = new Konva.Text({
-        x: i * finalWidth,
-        y: 0,
+        x: i * finalWidth + 1,
+        y: 1,
         text: getText(i - coord_indent[2], cols_len, coord_mode[1]),
         width: finalWidth,
         height: finalWidth,
@@ -139,8 +140,8 @@ export function drawCoord(
       i++
     ) {
       let complexText = new Konva.Text({
-        x: i * finalWidth,
-        y: (row_count + rows_len) * finalWidth,
+        x: i * finalWidth + 1,
+        y: (row_count + rows_len) * finalWidth + 1,
         text: getText(i - coord_indent[2], cols_len, coord_mode[3]),
         width: finalWidth,
         height: finalWidth,
@@ -166,8 +167,8 @@ export function drawCoord(
       i++
     ) {
       let complexText = new Konva.Text({
-        x: 0,
-        y: i * finalWidth,
+        x: 0 + 1,
+        y: i * finalWidth + 1,
         text: getText(i - coord_indent[0], rows_len, coord_mode[0]),
         width: finalWidth,
         height: finalWidth,
@@ -192,8 +193,8 @@ export function drawCoord(
       i++
     ) {
       let complexText = new Konva.Text({
-        x: (col_count + cols_len) * finalWidth,
-        y: i * finalWidth,
+        x: (col_count + cols_len) * finalWidth + 1,
+        y: i * finalWidth + 1,
         text: getText(i - coord_indent[0], cols_len, coord_mode[3]),
         width: finalWidth,
         height: finalWidth,
@@ -298,7 +299,45 @@ export function drawSignBefore(
       layer.add(rect);
     } else if (k === "LineSign") {
     } else if (k === "PathSign") {
-      //
+      let p = [];
+      // pos 为 [a , b] a为格子坐标，b为以这个格子为锚点自身的9个位置
+      for (const pos of v.node) {
+        let [x, y] = toIndex(pos[0], rows_len, cols_len);
+        const left = board_x + x * finalWidth;
+        const top = board_y + y * finalWidth;
+        if (pos[1] === 0) {
+          p.push(left, top);
+        } else if (pos[1] === 1) {
+          p.push(left + finalWidth / 2, top);
+        } else if (pos[1] === 2) {
+          p.push(left + finalWidth, top);
+        } else if (pos[1] === 3) {
+          p.push(left, top + finalWidth / 2);
+        } else if (pos[1] === 4) {
+          p.push(left + finalWidth / 2, top + finalWidth / 2);
+        } else if (pos[1] === 5) {
+          p.push(left + finalWidth, top + finalWidth / 2);
+        } else if (pos[1] === 6) {
+          p.push(left, top + finalWidth);
+        } else if (pos[1] === 7) {
+          p.push(left + finalWidth / 2, top + finalWidth);
+        } else if (pos[1] === 8) {
+          p.push(left + finalWidth, top + finalWidth);
+        }
+      }
+
+      const polygon = new Konva.Line({
+        points: p,
+        fill: convertColorFormat(v.gr_color),
+        stroke: convertColorFormat(v.line_color),
+        strokeWidth: v.size,
+        closed: true,
+      });
+      if (v.style === 1) {
+        polygon.setAttr("dash", [5, 3]);
+      }
+
+      layer.add(polygon);
     } else if (k === "TextSign") {
     } else if (k === "TitleSign") {
     }
@@ -398,6 +437,7 @@ export function drawSignAfter(
         y: board_y + y * finalWidth,
         width: finalWidth,
         height: finalWidth,
+        fill: convertColorFormat(v.color),
         text: v.value,
         fontSize: (finalWidth * 3) / 5,
         align: "center",
@@ -515,8 +555,8 @@ export function drawPiece(
   cols_len,
   finalWidth,
 ) {
-  for (let i = 0; i < cols_len; i++) {
-    for (let j = 0; j < rows_len; j++) {
+  for (let i = 0; i < rows_len; i++) {
+    for (let j = 0; j < cols_len; j++) {
       let piece_mode = parseInt(pieces[i][j]);
       if (piece_mode === 1) {
         const circle = new Konva.Circle({

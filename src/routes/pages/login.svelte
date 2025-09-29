@@ -1,6 +1,6 @@
 <script>
     import { invoke } from "@tauri-apps/api/core";
-
+    let { modes } = $props();
     let ipAddress = $state("");
     let username = $state("");
 
@@ -18,7 +18,7 @@
     }
 </script>
 
-<div class="login-container">
+<div class="login-container" hidden={modes !== "login"}>
     <div class="form-group">
         <legend>IP地址:</legend>
         <input

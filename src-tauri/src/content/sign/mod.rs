@@ -1,9 +1,18 @@
+use dashmap::DashMap;
+use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 
 use crate::content::sign::{
-    around_sign::AroundSign, badge_sign::BadgeSign, cache_sign::CacheSign, color_sign::ColorSign,
-    ground_sign::GroundSign, line_sign::LineSign, path_sign::PathSign, sign::Sign,
-    text_sign::TextSign, title_sign::TitleSign,
+    around_sign::AroundSign,
+    badge_sign::BadgeSign,
+    cache_sign::{CacheSign, CacheSignKey},
+    color_sign::ColorSign,
+    ground_sign::GroundSign,
+    line_sign::LineSign,
+    path_sign::PathSign,
+    sign::Sign,
+    text_sign::TextSign,
+    title_sign::TitleSign,
 };
 
 pub mod around_sign;
@@ -18,6 +27,10 @@ pub mod sign;
 pub mod text_sign;
 pub mod title_sign;
 
+lazy_static! {
+    pub static ref CACHE_MAP: DashMap<CacheSignKey, Vec<SignType>> = DashMap::new();
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum SignType {
     AroundSign(AroundSign),
@@ -31,7 +44,9 @@ pub enum SignType {
     TitleSign(TitleSign),
 }
 
-pub fn sign_derialize(msg: String) -> Vec<SignType> {
+/// 反序列化 Sign
+/// send: 发送 cache_name 去请求服务器cache
+pub fn sign_derialize(msg: String, send: impl Fn(String)) -> Vec<SignType> {
     let mut res = Vec::new();
     if msg == "-1" {
         return res;
@@ -54,6 +69,17 @@ pub fn sign_derialize(msg: String) -> Vec<SignType> {
             }
             "CacheSign" => {
                 if let Ok(cache_sign) = CacheSign::deserialize_str(sign_s) {
+                    let key = cache_sign.toKey();
+                    match CACHE_MAP.get(&key) {
+                        Some(value) => {
+                            for sign in &*value {
+                                res.push(sign.clone());
+                            }
+                        }
+                        None => {
+                            send(key.cache_name.clone());
+                        }
+                    }
                     res.push(SignType::CacheSign(cache_sign));
                 };
             }

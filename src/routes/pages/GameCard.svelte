@@ -1,13 +1,19 @@
 <script>
     import { invoke } from "@tauri-apps/api/core";
-    import { onDestroy } from "svelte";
+    import { onDestroy, onMount } from "svelte";
     let { player, score, side, countdown } = $props();
     let dateNow = $state(Date.now());
+    let countTime = $state(-1);
 
     // 定义一个计时器，每秒更新一次 dateNow 的值
-    const timer = setInterval(() => {
-        dateNow = Date.now();
-    }, 1000);
+    let timer;
+
+    onMount(() => {
+        timer = setInterval(() => {
+            dateNow = Date.now();
+            countTime = Math.floor(countdown - dateNow / 1000);
+        }, 1000);
+    });
 
     // 组件卸载时清除计时器，防止内存泄漏
     onDestroy(() => {
@@ -63,8 +69,8 @@
             >
         </div>
         <p hidden={getScoreHidden(score)}>得分：{score}</p>
-        <p hidden={getCountdownHidden(countdown - dateNow / 1000)}>
-            倒计时：{Math.floor(countdown - dateNow / 1000)}
+        <p hidden={getCountdownHidden(countTime)}>
+            倒计时：{countTime}
         </p>
     </div>
 </div>

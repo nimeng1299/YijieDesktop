@@ -1,7 +1,7 @@
 <script>
     import { invoke } from "@tauri-apps/api/core";
     // 接收传递的数据
-    let { datas, account } = $props();
+    let { datas, account, modes } = $props();
 
     // 处理玩家信息
     function append_player(data) {
@@ -29,7 +29,7 @@
     }
 </script>
 
-<div class="roomlist-container border-solid">
+<div class="roomlist-container border-solid" hidden={modes !== "roomlist"}>
     <div class="roomlist-layout">
         <div class="left-section">
             <!-- 左侧内容区域 -->

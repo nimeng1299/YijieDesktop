@@ -72,7 +72,7 @@ impl PlayerSocket {
                             tokio::spawn(async move {
                                 if let Ok(java_str) = JavaString::from_modified_utf8(msg_bytes) {
                                     let mut player = player_clone.lock().await;
-                                    if let Err(e) = player.read(java_str.trim().to_string()) {
+                                    if let Err(e) = player.read(java_str.trim().to_string()).await {
                                         println!("处理错误: {}", e);
                                     }
                                 }
@@ -180,7 +180,12 @@ impl Player {
         Ok(())
     }
 
-    pub fn read(&mut self, msgs: String) -> Result<()> {
+    pub fn send_no_async(&self, msg: Vec<u8>) -> Result<()> {
+        self.send_tx.send(msg)?;
+        Ok(())
+    }
+
+    pub async fn read(&mut self, msgs: String) -> Result<()> {
         let (msg_type, msg) = Msger::parse(msgs)?;
         match msg_type {
             Msger::ConnSuccess => {
@@ -191,6 +196,7 @@ impl Player {
             }
             Msger::LoginSuccess => {
                 println!("login success");
+                listen::show_toast("登录成功", "success");
                 self.isLogin = true;
             }
             Msger::RefreshRoomList => {
@@ -210,14 +216,18 @@ impl Player {
                     println!("change_to_room error: {}", e);
                 }
             },
-            Msger::RefreshGameInfo => match Game::from_msg(msg) {
-                Ok(game) => {
-                    self.data.update_game(self.app.clone(), game);
+            Msger::RefreshGameInfo => {
+                match Game::from_msg(msg, |m| {
+                    let _ = self.send_no_async(Msger::RequestCacheSignContent.to_msg(m));
+                }) {
+                    Ok(game) => {
+                        self.data.update_game(self.app.clone(), game);
+                    }
+                    Err(e) => {
+                        println!("update_game error: {}", e);
+                    }
                 }
-                Err(e) => {
-                    println!("update_game error: {}", e);
-                }
-            },
+            }
             Msger::DispatchCustomBottom => {
                 let mut buttons: Vec<String> = msg.split(';').map(|s| s.to_string()).collect();
                 if buttons.len() == 1 && buttons[0] == "-1" {
@@ -235,6 +245,10 @@ impl Player {
             }
             Msger::YouNotMove => {
                 self.data.change_move(self.app.clone(), false);
+            }
+            Msger::ReturnCacheSignContent => {
+                self.data.game.add_cache_sign(msg);
+                listen::update_game(self.app.clone(), self.data.game.clone());
             }
             Msger::WinMessage | Msger::GameStart => {
                 listen::show_toast(msg.as_str(), "success");

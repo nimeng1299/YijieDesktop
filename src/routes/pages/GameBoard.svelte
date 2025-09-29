@@ -16,13 +16,20 @@
 
     // 绘制函数
     function draw() {
+        if (
+            !(
+                typeof game.board === "object" &&
+                Object.prototype.toString.call(game.board) === "[object Object]"
+            )
+        )
+            return;
         let layer = new Konva.Layer();
         stage.destroyChildren();
         stage.draw();
 
         const boardDiv = document.getElementById("board");
-        const boardWidth = boardDiv.clientWidth - 1;
-        const boardHeight = boardDiv.clientHeight - 1;
+        const boardWidth = boardDiv.clientWidth - 1.5;
+        const boardHeight = boardDiv.clientHeight - 1.5;
 
         // 修改 stage 宽高
         stage.width(boardWidth);
@@ -37,19 +44,19 @@
         let have_coord = [false, false, false, false]; //是否绘制坐标
         // 如果有坐标，则长宽 +1
         if (game.coord_mode[0] !== "0") {
-            board_rows_len += 1;
+            board_cols_len += 1;
             have_coord[0] = true;
         }
         if (game.coord_mode[1] !== "0") {
-            board_cols_len += 1;
+            board_rows_len += 1;
             have_coord[1] = true;
         }
         if (game.coord_mode[2] !== "0") {
-            board_rows_len += 1;
+            board_cols_len += 1;
             have_coord[2] = true;
         }
         if (game.coord_mode[3] !== "0") {
-            board_cols_len += 1;
+            board_rows_len += 1;
             have_coord[3] = true;
         }
         //坐标缩进
@@ -66,15 +73,16 @@
         // 每个格子的最终宽度取最小
         finalWidth = Math.floor(Math.min(cellWidth, cellHeight) * 0.99);
 
+        // 加 1 为了防止 0 的线画不出来
         if (have_coord[0]) {
-            board_x = finalWidth;
+            board_x = finalWidth + 1;
         } else {
-            board_x = 0;
+            board_x = 0 + 1;
         }
         if (have_coord[1]) {
-            board_y = finalWidth;
+            board_y = finalWidth + 1;
         } else {
-            board_y = 0;
+            board_y = 0 + 1;
         }
 
         // 绘制格子
@@ -155,6 +163,9 @@
                 const rect = entry.contentRect;
                 let width = rect.width;
                 let height = rect.height;
+                if (width < 1 || height < 1) {
+                    return;
+                }
 
                 draw();
             }
