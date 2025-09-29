@@ -221,7 +221,51 @@ export function drawSignBefore(
     let [k, ..._] = Object.keys(item);
     let v = item[k];
     if (k === "AroundSign") {
-      //
+      const gridList = v.index.map((index) => {
+        let [col, row] = toIndex(index, rows_len, cols_len);
+        return { row, col, index };
+      });
+      // 计算选中区域边界
+      const minRow = Math.min(...gridList.map((cell) => cell.row));
+      const maxRow = Math.max(...gridList.map((cell) => cell.row));
+      const minCol = Math.min(...gridList.map((cell) => cell.col));
+      const maxCol = Math.max(...gridList.map((cell) => cell.col));
+      // 创建选中区域路径
+      const selection = new Konva.Shape({
+        name: "selection",
+        x: board_x,
+        y: board_y,
+        sceneFunc: function (context, shape) {
+          context.beginPath();
+
+          // 绘制外部矩形
+          context.rect(
+            minCol * finalWidth,
+            minRow * finalWidth,
+            (maxCol - minCol + 1) * finalWidth,
+            (maxRow - minRow + 1) * finalWidth,
+          );
+
+          // 绘制内部网格
+          for (const cell of gridList) {
+            context.rect(
+              cell.col * finalWidth,
+              cell.row * finalWidth,
+              finalWidth,
+              finalWidth,
+            );
+          }
+
+          context.closePath();
+          context.fillStrokeShape(shape);
+        },
+        fill: convertColorFormat(v.bg_color),
+        stroke: convertColorFormat(v.ed_color),
+        strokeWidth: v.size * 2, // 基础线宽为2，乘以缩放因子
+        cornerRadius: finalWidth / 3,
+        opacity: 0.7,
+      });
+      layer.add(selection);
     } else if (k === "BadgeSign") {
     } else if (k === "CacheSign") {
     } else if (k === "ColorSign") {
