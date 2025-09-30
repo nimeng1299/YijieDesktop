@@ -28,6 +28,7 @@
     </div>
     <div class="game-middle">
         <GameBoard {game} {can_move} />
+        <div hidden={game.game_tip === ""}>{game.game_tip}</div>
     </div>
     <div class="game-right">
         <GameSpectator room_name={room.name} spectator={room.spectator}

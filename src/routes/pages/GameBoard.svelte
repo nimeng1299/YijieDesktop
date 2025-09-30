@@ -16,16 +16,18 @@
 
     // 绘制函数
     function draw() {
+        stage.destroyChildren();
+        stage.draw();
         if (
             !(
                 typeof game.board === "object" &&
                 Object.prototype.toString.call(game.board) === "[object Object]"
             )
-        )
+        ) {
+            console.log(Object.prototype.toString.call(game.board));
             return;
+        }
         let layer = new Konva.Layer();
-        stage.destroyChildren();
-        stage.draw();
 
         const boardDiv = document.getElementById("board");
         const boardWidth = boardDiv.clientWidth - 1.5;

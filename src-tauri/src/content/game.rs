@@ -20,13 +20,14 @@ pub struct Game {
 impl Game {
     pub fn from_msg(msg: String, send: impl Fn(String)) -> Result<Self> {
         let datas: Vec<&str> = msg.split('&').collect();
+        let tip = if datas[4] != "-1" { datas[4] } else { "" };
         if datas.len() == 8 {
             let game = Self {
                 step: datas[0].parse()?,
                 current_player: datas[1].parse()?,
                 black_score: datas[2].parse()?,
                 white_score: datas[3].parse()?,
-                game_tip: datas[4].to_string(),
+                game_tip: tip.to_string(),
                 board: Board::from_msg(datas[5].to_string()),
                 sign: sign_derialize(datas[6].to_string(), send),
                 coord_mode: datas[7].to_string(),
