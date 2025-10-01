@@ -250,6 +250,9 @@ impl Player {
                 self.data.game.add_cache_sign(msg);
                 listen::update_game(self.app.clone(), self.data.game.clone());
             }
+            Msger::LoginFailed => {
+                listen::show_toast(format!("登录失败: {msg}").as_str(), "error");
+            }
             Msger::WinMessage | Msger::GameStart => {
                 listen::show_toast(msg.as_str(), "success");
             }
