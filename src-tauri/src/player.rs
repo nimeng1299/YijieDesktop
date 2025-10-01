@@ -1,6 +1,5 @@
 use std::{
     collections::VecDeque,
-    io::{Read, Write},
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
@@ -11,7 +10,7 @@ use std::{
 
 use crate::{
     account::Account,
-    content::{game::Game, hall_room_list::HallRoomList, room::Room},
+    content::{game::Game, hall_room_list::HallRoomList, reply::Reply, room::Room},
     listen,
     socket::msger::{self, Msger},
 };
@@ -85,7 +84,7 @@ impl PlayerSocket {
                         continue;
                     }
                     Err(e) => {
-                        println!("{}", e);
+                        println!("服务端接收失败: {}", e);
                         break;
                     }
                 }
@@ -161,6 +160,9 @@ pub struct Player {
     app: tauri::AppHandle,
     data: Data,
 
+    start_reply: AtomicBool,
+    reply: Reply,
+
     pub isLogin: bool,
 }
 
@@ -171,6 +173,8 @@ impl Player {
             isConnected: false,
             app,
             data: Data::default(),
+            start_reply: AtomicBool::new(false),
+            reply: Reply::new(),
             isLogin: false,
         }
     }
@@ -222,6 +226,9 @@ impl Player {
                 }) {
                     Ok(game) => {
                         self.data.update_game(self.app.clone(), game);
+                        if self.start_reply.load(Ordering::Relaxed) {
+                            self.reply.add_board(self.get_data().game.clone());
+                        }
                     }
                     Err(e) => {
                         println!("update_game error: {}", e);
@@ -285,6 +292,50 @@ impl Player {
 
     pub fn get_data(&self) -> Data {
         self.data.clone()
+    }
+
+    pub async fn change_reply(&mut self) {
+        if !self.start_reply.load(Ordering::Relaxed) {
+            self.start_reply.store(true, Ordering::Relaxed);
+            // 开始录制
+            let mut reply = Reply::new();
+            reply.add_board(self.get_data().game.clone());
+            self.reply = reply;
+
+            if self.get_data().room.black_player != "" {
+                self.reply
+                    .set_black_player(self.get_data().room.black_player);
+            }
+            if self.get_data().room.white_player != "" {
+                self.reply
+                    .set_white_player(self.get_data().room.white_player);
+            }
+            self.reply.set_title(self.get_data().room.name);
+
+            listen::is_start_reply(self.app.clone(), true);
+        } else {
+            self.start_reply.store(false, Ordering::Relaxed);
+            if self.get_data().room.black_player != "" {
+                self.reply
+                    .set_black_player(self.get_data().room.black_player);
+            }
+            if self.get_data().room.white_player != "" {
+                self.reply
+                    .set_white_player(self.get_data().room.white_player);
+            }
+            // 结束录制
+            match self.reply.save().await {
+                Ok(path) => {
+                    listen::show_toast(format!("保存棋谱成功, 保存为: {path}").as_str(), "success");
+                    listen::is_start_reply(self.app.clone(), false);
+                }
+                Err(e) => {
+                    listen::show_toast(format!("保存棋谱失败，请重试: {e}").as_str(), "error");
+                    // 继续录制
+                    self.start_reply.store(true, Ordering::Relaxed);
+                }
+            }
+        }
     }
 }
 

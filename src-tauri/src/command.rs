@@ -183,3 +183,14 @@ pub async fn request_leave_room() -> Result<(), String> {
         Err("player not exists".to_string())
     }
 }
+
+/// 开始/结束录制
+#[tauri::command]
+pub async fn change_reply() -> Result<(), String> {
+    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
+        player_socket.get_player().await.change_reply().await;
+        Ok(())
+    } else {
+        Err("player not exists".to_string())
+    }
+}

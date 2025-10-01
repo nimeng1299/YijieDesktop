@@ -23,6 +23,7 @@ pub fn run() {
             command::request_custom_bottom_event,
             command::request_move_later,
             command::request_leave_room,
+            command::change_reply,
             listen::show_toast,
             listen::login_success,
             listen::change_mode,
@@ -34,6 +35,7 @@ pub fn run() {
             listen::refresh_countdown,
             listen::you_can_move,
             listen::you_not_move,
+            listen::is_start_reply
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -70,3 +70,9 @@ pub fn you_not_move(app: tauri::AppHandle) {
     println!("you_not_move");
     app.emit("you_not_move", ()).unwrap();
 }
+
+#[tauri::command]
+pub fn is_start_reply(app: tauri::AppHandle, is_start: bool) {
+    println!("is_start_reply, {is_start}");
+    app.emit("is_start_reply", is_start).unwrap();
+}

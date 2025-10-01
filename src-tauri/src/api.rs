@@ -1,6 +1,6 @@
+use anyhow::{bail, Result};
+use chrono::{Datelike, Local, Timelike};
 use std::path::{Path, PathBuf};
-
-use anyhow::Result;
 use tokio::fs::{self, File};
 /// 一些有用的 api
 
@@ -57,4 +57,37 @@ where
 
     println!("File saved successfully: {}", path.display());
     Ok(())
+}
+
+/// 获取当前可执行文件的目录
+pub fn get_current_exe_dir() -> Result<PathBuf> {
+    match std::env::current_exe() {
+        Ok(exe_path) => {
+            if let Some(dir) = exe_path.parent() {
+                Ok(dir.to_path_buf())
+            } else {
+                bail!("获取当前目录失败, exe_path为空")
+            }
+        }
+        Err(e) => bail!("获取当前目录失败, {e}"),
+    }
+}
+
+/// 获取格式化后的时间
+pub fn get_foramt_time() -> String {
+    // 获取当前本地时间
+    let now = Local::now();
+
+    // 分别提取时间分量
+    let year = now.year();
+    let month = now.month();
+    let day = now.day();
+    let hour = now.hour();
+    let minute = now.minute();
+    let second = now.second();
+
+    format!(
+        "{}-{:02}-{:02} {:02}-{:02}-{:02}",
+        year, month, day, hour, minute, second
+    )
 }

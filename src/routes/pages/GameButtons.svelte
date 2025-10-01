@@ -1,7 +1,18 @@
 <script>
     import { invoke } from "@tauri-apps/api/core";
+    import { listen } from "@tauri-apps/api/event";
 
     let { buttons } = $props();
+    let reply = $state("开始录制");
+
+    listen("is_start_reply", (event) => {
+        const is_start = event.payload;
+        if (is_start) {
+            reply = "结束录制";
+        } else {
+            reply = "开始录制";
+        }
+    });
 
     function leaveSeat() {
         invoke("request_leave_seat", {});
@@ -15,6 +26,9 @@
     function customBottomEvent(event) {
         invoke("request_custom_bottom_event", { event: event });
     }
+    function changeReply() {
+        invoke("change_reply", {});
+    }
 </script>
 
 <div style="">
@@ -26,6 +40,11 @@
             >认输</button
         >
     </div>
+    <button
+        class="btn btn-outline btn-accent"
+        style="margin-top: 5px;"
+        onclick={changeReply}>{reply}</button
+    >
     <button
         class="btn btn-outline btn-accent"
         style="margin-top: 5px;"
