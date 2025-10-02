@@ -1,7 +1,21 @@
 <script>
-    import { getCurrentWindow } from "@tauri-apps/api/window";
+    import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 
-    function clicked() {}
+    function clicked() {
+        const uniqueLabel = `replyWindow_${Date.now()}`;
+        const webview = new WebviewWindow(uniqueLabel, {
+            url: "/reply",
+            title: "棋谱回放",
+        });
+        webview.once("tauri://created", function () {
+            // 成功创建 webview 窗口
+            console.log("成功创建 webview 窗口");
+        });
+        webview.once("tauri://error", function (e) {
+            // 创建 Webview 窗口时发生错误
+            console.log("创建 Webview 窗口时发生错误", e);
+        });
+    }
 </script>
 
 <button class="btn btn-ghost title-btn" onclick={clicked}
