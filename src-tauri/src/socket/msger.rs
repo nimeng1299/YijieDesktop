@@ -281,7 +281,7 @@ fn write_utf(message: String) -> Vec<u8> {
 pub fn read_utf(reader: &mut &[u8]) -> Result<Vec<String>> {
     let mut results = Vec::new();
     let original_len = reader.len();
-    
+
     while reader.len() > 0 {
         // Check if we have enough data to read the length prefix
         if reader.len() < 2 {
@@ -295,11 +295,11 @@ pub fn read_utf(reader: &mut &[u8]) -> Result<Vec<String>> {
                 break;
             }
         }
-        
+
         // Read the length prefix to check if we have enough data for the message
         let len_bytes = [reader[0], reader[1]];
         let utf8_len = u16::from_be_bytes(len_bytes) as usize;
-        
+
         // Check if we have enough data for the complete message
         if reader.len() < 2 + utf8_len {
             // Not enough data for complete message, return what we have so far
@@ -312,16 +312,16 @@ pub fn read_utf(reader: &mut &[u8]) -> Result<Vec<String>> {
                 break;
             }
         }
-        
+
         let (utf8_len, s) = read_utf_first(reader)?;
         results.push(s);
-        
+
         // If we've processed all data, break
         if reader.len() == 0 {
             break;
         }
     }
-    
+
     Ok(results)
 }
 
@@ -332,8 +332,8 @@ fn read_utf_first(reader: &mut &[u8]) -> Result<(u32, String)> {
     }
     let len_bytes = [reader[0], reader[1]];
     let utf8_len = u16::from_be_bytes(len_bytes) as usize;
-    
-    println!("read len {} / {}" , utf8_len, reader.len());
+
+    println!("read len {} / {}", utf8_len, reader.len());
 
     // 检查是否有足够的数据
     if reader.len() < 2 + utf8_len {
@@ -342,11 +342,11 @@ fn read_utf_first(reader: &mut &[u8]) -> Result<(u32, String)> {
 
     // 读取 UTF-8 编码数据
     let utf8_bytes = &reader[2..2 + utf8_len];
-    
+
     let java_str = JavaString::from_modified_utf8(utf8_bytes.to_vec())?;
-   
+
     // 更新reader的位置
     *reader = &reader[2 + utf8_len..];
-    
+
     Ok(((utf8_len + 2) as u32, java_str.to_string()))
 }

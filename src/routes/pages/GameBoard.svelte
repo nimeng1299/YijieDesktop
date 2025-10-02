@@ -4,7 +4,7 @@
     import * as drawb from "./drawb";
     import Konva from "konva";
 
-    let { game, can_move } = $props();
+    let { game, can_move, is_reply } = $props();
     let { finalWidth } = $state(200);
     let { canvasWidth } = $state(200);
     let { board_x } = $state(0);
@@ -143,6 +143,7 @@
         });
 
         stage.on("click", (e) => {
+            if (is_reply) return;
             const pointerPos = stage.getPointerPosition();
             const x = Math.floor((pointerPos.x - board_x) / finalWidth);
             const y = Math.floor((pointerPos.y - board_y) / finalWidth);

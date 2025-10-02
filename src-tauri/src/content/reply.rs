@@ -7,7 +7,7 @@ use crate::{
 };
 
 /// 录制棋盘回放
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Reply {
     title: String,
     black_player: String,

@@ -4,12 +4,14 @@ pub mod command;
 pub mod content;
 pub mod listen;
 pub mod player;
+pub mod reply;
 pub mod socket;
 pub mod tauris;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             command::init_app,
@@ -35,7 +37,9 @@ pub fn run() {
             listen::refresh_countdown,
             listen::you_can_move,
             listen::you_not_move,
-            listen::is_start_reply
+            listen::is_start_reply,
+            reply::command::reply_init,
+            reply::command::reply_open
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

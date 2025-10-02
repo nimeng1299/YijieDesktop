@@ -27,7 +27,7 @@
         </div>
     </div>
     <div class="game-middle">
-        <GameBoard {game} {can_move} />
+        <GameBoard {game} {can_move} is_reply={false} />
         <div hidden={game.game_tip === ""}>{game.game_tip}</div>
     </div>
     <div class="game-right">

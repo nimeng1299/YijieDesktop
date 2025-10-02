@@ -1,10 +1,10 @@
-use serde::{Deserialize, Serialize};
 use anyhow::{bail, Result};
+use serde::{Deserialize, Serialize};
 
 use crate::content::sign::sign::Sign;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GroundSign{
+pub struct GroundSign {
     start: i32,
     end: i32,
     bg_color: String,
@@ -16,8 +16,8 @@ pub struct GroundSign{
 
 impl Sign for GroundSign {
     fn deserialize_str(datas: Vec<&str>) -> Result<Self> {
-        if datas.len() ==  8{
-            Ok(Self{
+        if datas.len() == 8 {
+            Ok(Self {
                 start: datas[1].parse()?,
                 end: datas[2].parse()?,
                 bg_color: datas[3].to_string(),
@@ -26,7 +26,7 @@ impl Sign for GroundSign {
                 bg_style: datas[6].parse()?,
                 ed_style: datas[7].parse()?,
             })
-        }else{
+        } else {
             bail!("GroundSign 数据格式错误")
         }
     }
