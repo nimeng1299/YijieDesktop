@@ -1,14 +1,14 @@
 use std::{collections::VecDeque, io::Read, path::PathBuf};
 
-use anyhow::{self, Result};
+use anyhow::{self, bail, Ok, Result};
 use std::fs::File;
 
 use crate::content::{game::Game, reply::Reply};
 
 pub struct ReplyManager {
-    data: Reply,
-    path: PathBuf,
-    operation: VecDeque<Game>,
+    pub data: Reply,
+    pub path: PathBuf,
+    operation: VecDeque<Reply>,
 }
 
 impl ReplyManager {
@@ -21,6 +21,22 @@ impl ReplyManager {
         self.path = file;
 
         Ok(datas)
+    }
+
+    pub fn delete(&mut self, index: usize) -> Result<Reply> {
+        self.operation.push_back(self.data.clone());
+        if self.data.remove_item(index) {
+            Ok(self.data.clone())
+        } else {
+            self.operation.pop_front();
+            bail!("can delete data from index: {index}")
+        }
+    }
+
+    pub fn undo(&mut self) {
+        if let Some(reply) = self.operation.pop_front() {
+            self.data = reply;
+        }
     }
 }
 

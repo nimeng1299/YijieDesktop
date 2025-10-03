@@ -3,7 +3,7 @@
     import { Menu, MenuItem, Submenu } from "@tauri-apps/api/menu";
     import { invoke } from "@tauri-apps/api/core";
     import { listen } from "@tauri-apps/api/event";
-    import { open } from "@tauri-apps/plugin-dialog";
+    import { open, save } from "@tauri-apps/plugin-dialog";
     import GameCard from "../pages/GameCard.svelte";
     import GameBoard from "../pages/GameBoard.svelte";
     import ReolyList from "./ReolyList.svelte";
@@ -54,18 +54,50 @@
                         file: file,
                     }).then((res) => {
                         reply_data = res;
+                        if (reply_data.datas.length > 0) {
+                            game = reply_data.datas[0];
+                        }
+                        showToast("打开成功", "success");
                     });
                 });
             }),
-            createMenuItem("save", "保存", () => console.log("Save clicked")),
-            createMenuItem("save_as", "另存为...", () =>
-                console.log("Save As clicked"),
-            ),
+            createMenuItem("save", "保存", () => {
+                console.log("Save clicked");
+
+                invoke("reply_save", {
+                    id: id,
+                });
+            }),
+            createMenuItem("save_as", "另存为...", () => {
+                console.log("Save As clicked");
+                save({
+                    filters: [
+                        {
+                            name: "棋谱文件",
+                            extensions: ["json"],
+                        },
+                    ],
+                }).then((file) => {
+                    invoke("reply_save_as", {
+                        id: id,
+                        file: file,
+                    }).then((res) => {
+                        reply_data = res;
+                    });
+                });
+            }),
         ]);
 
         const editItems = await Promise.all([
-            createMenuItem("undo", "撤回", () => console.log("Undo clicked")),
-            createMenuItem("redo", "重做", () => console.log("Redo clicked")),
+            createMenuItem("undo", "撤回", () => {
+                console.log("undo clicked");
+
+                invoke("reply_undo", {
+                    id: id,
+                }).then(() => {
+                    showToast("撤回成功", "success");
+                });
+            }),
         ]);
 
         const fileSubmenu = await createSubmenu("文件", fileItems);
@@ -93,6 +125,20 @@
         console.log("id: ", res);
         id = res;
     });
+
+    function showToast(message, type = "success") {
+        console.log("toast: ", message, type);
+        const toastContainer = document.getElementById("toast-container");
+        const toast = document.createElement("div");
+        toast.className = `alert alert-${type}`;
+        toast.innerHTML = `<span>${message}</span>`;
+        toastContainer.appendChild(toast);
+
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
 </script>
 
 <div class="game-container">
@@ -121,11 +167,27 @@
     <div class="game-right">
         <ReolyList
             datas={reply_data.datas}
+            title={reply_data.title}
             on:chenge-index={(e) => {
                 game = reply_data.datas[e.detail.index];
             }}
+            on:delete-index={(e) => {
+                invoke("reply_delete", {
+                    id: id,
+                    index: e.detail.index,
+                }).then((res) => {
+                    reply_data = res;
+                    showToast("删除成功", "success");
+                });
+                if (e.detail.index >= 0) {
+                    game = reply_data.datas[e.detail.index - 1];
+                } else {
+                    game = reply_data.datas[e.detail.index];
+                }
+            }}
         />
     </div>
+    <div id="toast-container" class="toast toast-end"></div>
 </div>
 
 <style>
@@ -135,7 +197,7 @@
         height: 100vh;
     }
     .game-left {
-        width: 25%;
+        width: 15%;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -144,7 +206,7 @@
         width: 100%; /* 添加宽度以占满 game-left */
     }
     .game-middle {
-        width: 40%;
+        width: 50%;
     }
     .game-right {
         width: 35%;

@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use anyhow::{self, Ok, Result};
 use serde::{Deserialize, Serialize};
 
@@ -52,24 +54,29 @@ impl Reply {
         let file = get_current_exe_dir()?
             .join("reply")
             .join(format!("{}-{}.json", self.title, self.time));
+        self.save_with_filename(&file).await
+    }
+
+    pub async fn save_with_filename(&mut self, filename: &PathBuf) -> Result<String> {
         let str;
-        if let Some(s) = file.to_str() {
+        if let Some(s) = filename.to_str() {
             str = s.to_string();
         } else {
             str = format!("{}-{}.json", self.title, self.time);
         }
 
-        save_file(file, serde_json::to_string(self)?).await?;
+        save_file(filename, serde_json::to_string(self)?).await?;
         self.datas = vec![];
 
         Ok(str)
     }
-}
 
-impl Drop for Reply {
-    fn drop(&mut self) {
-        if self.datas.len() > 0 {
-            let _ = self.save();
+    pub fn remove_item(&mut self, index: usize) -> bool {
+        if index < self.datas.len() {
+            self.datas.remove(index);
+            true
+        } else {
+            false
         }
     }
 }

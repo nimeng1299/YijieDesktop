@@ -39,7 +39,11 @@ pub fn run() {
             listen::you_not_move,
             listen::is_start_reply,
             reply::command::reply_init,
-            reply::command::reply_open
+            reply::command::reply_open,
+            reply::command::reply_save,
+            reply::command::reply_save_as,
+            reply::command::reply_delete,
+            reply::command::reply_undo
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

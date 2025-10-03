@@ -1,7 +1,7 @@
 <script>
     import { createEventDispatcher } from "svelte";
 
-    let { datas } = $props();
+    let { datas, title } = $props();
     let checked = $state(0);
 
     const dispath = createEventDispatcher();
@@ -12,6 +12,11 @@
         console.log("checked: ", index);
         dispath("chenge-index", { index: index });
     }
+
+    function deleted(index) {
+        console.log("deleted: ", index);
+        dispath("delete-index", { index: index });
+    }
 </script>
 
 <div class="reply-list-div">
@@ -19,19 +24,19 @@
         <!-- head -->
         <thead>
             <tr>
-                <th>步数</th>
+                <th>{title}</th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
             {#each datas as item, index}
-                <tr
-                    class={index === checked ? "bg-base-200" : ""}
-                    onclick={() => check(index)}
-                >
-                    <td>第 {index} 步</td>
+                <tr class={index === checked ? "bg-base-200" : ""}>
+                    <td onclick={() => check(index)}>第 {index} 步</td>
                     <th>
-                        <button class="btn btn-ghost btn-xs">删除</button>
+                        <button
+                            class="btn btn-ghost btn-xs"
+                            onclick={() => deleted(index)}>删除</button
+                        >
                     </th>
                 </tr>
             {/each}
