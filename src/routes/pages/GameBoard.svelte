@@ -24,9 +24,13 @@
                 Object.prototype.toString.call(game.board) === "[object Object]"
             )
         ) {
-            console.log(Object.prototype.toString.call(game.board));
+            console.log(
+                "not draw: ",
+                Object.prototype.toString.call(game.board),
+            );
             return;
         }
+        const _game = $state.snapshot(game);
         let layer = new Konva.Layer();
 
         const boardDiv = document.getElementById("board");
@@ -37,7 +41,7 @@
         stage.width(boardWidth);
         stage.height(boardHeight);
 
-        let game_board = game.board;
+        let game_board = _game.board;
         let cols_len = game_board.cols_len; //多少列
         let rows_len = game_board.rows_len; //多少行
         let board_cols_len = cols_len; //绘制多少列 （加上坐标）
@@ -45,29 +49,29 @@
         //左上右下
         let have_coord = [false, false, false, false]; //是否绘制坐标
         // 如果有坐标，则长宽 +1
-        if (game.coord_mode[0] !== "0") {
+        if (_game.coord_mode[0] !== "0") {
             board_cols_len += 1;
             have_coord[0] = true;
         }
-        if (game.coord_mode[1] !== "0") {
+        if (_game.coord_mode[1] !== "0") {
             board_rows_len += 1;
             have_coord[1] = true;
         }
-        if (game.coord_mode[2] !== "0") {
+        if (_game.coord_mode[2] !== "0") {
             board_cols_len += 1;
             have_coord[2] = true;
         }
-        if (game.coord_mode[3] !== "0") {
+        if (_game.coord_mode[3] !== "0") {
             board_rows_len += 1;
             have_coord[3] = true;
         }
         //坐标缩进
         //左右边起点缩进格数，左右边终点缩进格数，上下边起点缩进格数，上下边终点缩进格数。
         let coord_indent = [
-            parseInt(game.coord_mode[4]),
-            parseInt(game.coord_mode[5]),
-            parseInt(game.coord_mode[6]),
-            parseInt(game.coord_mode[7]),
+            parseInt(_game.coord_mode[4]),
+            parseInt(_game.coord_mode[5]),
+            parseInt(_game.coord_mode[6]),
+            parseInt(_game.coord_mode[7]),
         ];
         // 计算每个单元格的宽度和高度
         const cellWidth = boardWidth / board_cols_len;
@@ -93,7 +97,7 @@
         // 绘制坐标
         drawb.drawCoord(
             layer,
-            game.coord_mode,
+            _game.coord_mode,
             have_coord,
             coord_indent,
             cols_len,
@@ -103,7 +107,7 @@
 
         drawb.drawSignBefore(
             layer,
-            game.sign,
+            _game.sign,
             board_x,
             board_y,
             rows_len,
@@ -113,7 +117,7 @@
 
         drawb.drawPiece(
             layer,
-            game.board.pieces,
+            _game.board.pieces,
             board_x,
             board_y,
             rows_len,
@@ -123,7 +127,7 @@
 
         drawb.drawSignAfter(
             layer,
-            game.sign,
+            _game.sign,
             board_x,
             board_y,
             rows_len,
@@ -169,7 +173,7 @@
                 if (width < 1 || height < 1) {
                     return;
                 }
-
+                console.log("change size draw");
                 draw();
             }
         });
@@ -194,7 +198,7 @@
     $effect(() => {
         if (!isMounted) return;
         if (!game) return;
-        let n = JSON.parse(JSON.stringify(game));
+        let n = JSON.stringify($state.snapshot(game));
         if (curr === n) return;
         curr = n;
         draw();

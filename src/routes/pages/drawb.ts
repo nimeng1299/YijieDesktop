@@ -1,4 +1,27 @@
 import Konva from "konva";
+
+function numberToChineseObj(num: number): string {
+  const numberMap: { [key: number]: string } = {
+    1: "一",
+    2: "二",
+    3: "三",
+    4: "四",
+    5: "五",
+    6: "六",
+    7: "七",
+    8: "八",
+    9: "九",
+    10: "十",
+  };
+
+  // 检查数字是否在映射中
+  if (numberMap.hasOwnProperty(num)) {
+    return numberMap[num];
+  } else {
+    return ""; // 或返回默认值/抛错
+  }
+}
+
 // 计算绘制哪个文字 i：坐标，len：长度，mode：哪种模式
 // 1- 6 英文字母正序，英文字母倒序，阿拉伯数字正序，阿拉伯数字倒序，中文数字正序，中文数字倒序
 export function getText(i, len, mode) {
@@ -13,9 +36,9 @@ export function getText(i, len, mode) {
     let num = len - i;
     return num.toString();
   } else if (mode === "5") {
-    return String.fromCharCode(19968 + i);
+    return numberToChineseObj(i + 1);
   } else if (mode === "6") {
-    return String.fromCharCode(19968 + len - i);
+    return numberToChineseObj(len - i);
   } else {
     return "";
   }

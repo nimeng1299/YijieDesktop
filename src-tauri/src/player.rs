@@ -1,7 +1,7 @@
 use std::{
     collections::VecDeque,
     sync::{
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicI64, Ordering},
         Arc,
     },
     thread,
@@ -16,6 +16,7 @@ use crate::{
 };
 use anyhow::{anyhow, bail, Result};
 use java_string::JavaString;
+use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
@@ -23,6 +24,10 @@ use tokio::{
     sync::{mpsc, Mutex, MutexGuard},
     task::JoinHandle,
 };
+
+lazy_static! {
+    static ref KEEPLIVE_TIME: AtomicI64 = AtomicI64::new(chrono::Utc::now().timestamp_millis());
+}
 
 pub struct PlayerSocket {
     pub player: Arc<Mutex<Player>>,
@@ -54,28 +59,29 @@ impl PlayerSocket {
                         data_buffer.extend(&buffer[0..n]);
 
                         // 循环处理所有完整数据包
-                        while data_buffer.len() >= 2 {
+                        if data_buffer.len() >= 2 {
                             let data_len =
                                 u16::from_be_bytes([data_buffer[0], data_buffer[1]]) as usize;
 
-                            if data_buffer.len() < data_len + 2 {
-                                break; // 等待更多数据
-                            }
+                            if data_buffer.len() >= data_len + 2 {
+                                // 移除长度头
+                                data_buffer.drain(0..2);
+                                let msg_bytes: Vec<u8> = data_buffer.drain(0..data_len).collect();
 
-                            // 移除长度头
-                            data_buffer.drain(0..2);
-                            let msg_bytes: Vec<u8> = data_buffer.drain(0..data_len).collect();
-
-                            // 异步处理避免阻塞读取线程
-                            let player_clone = Arc::clone(&player_read);
-                            tokio::spawn(async move {
-                                if let Ok(java_str) = JavaString::from_modified_utf8(msg_bytes) {
-                                    let mut player = player_clone.lock().await;
-                                    if let Err(e) = player.read(java_str.trim().to_string()).await {
-                                        println!("处理错误: {}", e);
+                                // 异步处理避免阻塞读取线程
+                                let player_clone = Arc::clone(&player_read);
+                                tokio::spawn(async move {
+                                    if let Ok(java_str) = JavaString::from_modified_utf8(msg_bytes)
+                                    {
+                                        let mut player = player_clone.lock().await;
+                                        if let Err(e) =
+                                            player.read(java_str.trim().to_string()).await
+                                        {
+                                            println!("处理错误: {}", e);
+                                        }
                                     }
-                                }
-                            });
+                                });
+                            }
                         }
                     }
 
@@ -111,16 +117,8 @@ impl PlayerSocket {
             loop {
                 tokio::time::sleep(Duration::from_secs(25)).await;
                 let msg = Msger::KeepLive.to_msg("Ok".to_string());
+                KEEPLIVE_TIME.store(chrono::Utc::now().timestamp_millis(), Ordering::Relaxed);
                 tx1.send(msg);
-                let now = time::SystemTime::now();
-                let epoch = now
-                    .duration_since(time::SystemTime::UNIX_EPOCH)
-                    .unwrap_or_default();
-                let seconds = epoch.as_secs() % 86400; // 当天秒数
-                let hour = (seconds / 3600) % 24;
-                let minute = (seconds % 3600) / 60;
-                let second = seconds % 60;
-                println!("keeplive: {:02}:{:02}:{:02}", hour, minute, second);
             }
         });
 
@@ -262,6 +260,11 @@ impl Player {
             }
             Msger::WinMessage | Msger::GameStart => {
                 listen::show_toast(msg.as_str(), "success");
+            }
+            Msger::KeepLive => {
+                let send_time = KEEPLIVE_TIME.load(Ordering::Relaxed);
+                let this_time = chrono::Utc::now().timestamp_millis();
+                println!("KeepLive Time: {} ms", this_time - send_time);
             }
             _ => {
                 println!("--> read: {} type: {}", msg, msg_type);
