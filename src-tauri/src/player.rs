@@ -51,9 +51,6 @@ impl PlayerSocket {
             let mut data_buffer: VecDeque<u8> = VecDeque::new();
             loop {
                 match read_stream.read(&mut buffer).await {
-                    Ok(0) => {
-                        break;
-                    }
                     Ok(n) => {
                         println!("read: {} bytes", n);
                         data_buffer.extend(&buffer[0..n]);
