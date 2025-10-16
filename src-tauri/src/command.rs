@@ -194,3 +194,33 @@ pub async fn change_reply() -> Result<(), String> {
         Err("player not exists".to_string())
     }
 }
+
+/// 名人堂
+#[tauri::command]
+pub async fn request_player_rank_list() -> Result<(), String> {
+    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
+        player_socket
+            .get_player()
+            .await
+            .send(Msger::RequestPlayerRankList.to_msg(format!("Ok")))
+            .await;
+        Ok(())
+    } else {
+        Err("player not exists".to_string())
+    }
+}
+
+/// 热棋榜
+#[tauri::command]
+pub async fn request_room_rank_list() -> Result<(), String> {
+    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
+        player_socket
+            .get_player()
+            .await
+            .send(Msger::RequestRoomRankList.to_msg(format!("Ok")))
+            .await;
+        Ok(())
+    } else {
+        Err("player not exists".to_string())
+    }
+}

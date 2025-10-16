@@ -14,5 +14,4 @@ This template should help get you started developing with Tauri, SvelteKit and T
 1. 剩下几个sign
 2. 富文本
 3. 聊天
-4. msger接受补全
-5. 录制和回放功能
+4. 规则与对弈记录

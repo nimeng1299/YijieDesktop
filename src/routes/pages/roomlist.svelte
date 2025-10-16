@@ -53,7 +53,7 @@
                         <div class="flex justify-end">
                             <button
                                 class="btn btn-square btn-ghost"
-                                on:click={() => enter_room(data.name)}
+                                onclick={() => enter_room(data.name)}
                             >
                                 <svg
                                     class="size-[1.2em]"
@@ -75,7 +75,7 @@
                 {/each}
             </ul>
         </div>
-        <div class="right-section" style="padding-left: 10px;">
+        <div class="right-section" style="padding-left: 10px; ">
             <!-- 右侧内容区域 -->
             <div class="card card-dash shadow-sm">
                 <div class="card-body">
@@ -83,6 +83,24 @@
                     <p>
                         {account.other_user_info}
                     </p>
+                </div>
+            </div>
+            <div class="card card-dash card-sm shadow-sm">
+                <div class="card-body items-center text-center">
+                    <div class="card-actions">
+                        <button
+                            class="btn btn-ghost"
+                            onclick={() => {
+                                invoke("request_player_rank_list", {});
+                            }}>名人堂</button
+                        >
+                        <button
+                            class="btn btn-ghost"
+                            onclick={() => {
+                                invoke("request_room_rank_list", {});
+                            }}>热棋榜</button
+                        >
+                    </div>
                 </div>
             </div>
         </div>

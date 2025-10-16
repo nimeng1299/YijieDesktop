@@ -76,3 +76,14 @@ pub fn is_start_reply(app: tauri::AppHandle, is_start: bool) {
     println!("is_start_reply, {is_start}");
     app.emit("is_start_reply", is_start).unwrap();
 }
+
+#[tauri::command]
+pub fn show_info_dialog(app: tauri::AppHandle, data: String) {
+    app.emit("show_info_dialog", data).unwrap();
+}
+
+/// 更新延迟(ms)
+#[tauri::command]
+pub fn update_deloy(app: tauri::AppHandle, deloy: i64) {
+    app.emit("update_deloy", deloy).unwrap();
+}

@@ -197,6 +197,10 @@ impl Player {
                 println!("login success");
                 listen::show_toast("登录成功", "success");
                 self.isLogin = true;
+                tokio::time::sleep(Duration::from_secs(1)).await;
+                let msg = Msger::KeepLive.to_msg("Ok".to_string());
+                KEEPLIVE_TIME.store(chrono::Utc::now().timestamp_millis(), Ordering::Relaxed);
+                self.send(msg).await;
             }
             Msger::RefreshRoomList => {
                 let room_list = HallRoomList::from_string(msg);
@@ -261,7 +265,11 @@ impl Player {
             Msger::KeepLive => {
                 let send_time = KEEPLIVE_TIME.load(Ordering::Relaxed);
                 let this_time = chrono::Utc::now().timestamp_millis();
+                listen::update_deloy(self.app.clone(), this_time - send_time);
                 println!("KeepLive Time: {} ms", this_time - send_time);
+            }
+            Msger::ShowInfoDialog => {
+                listen::show_info_dialog(self.app.clone(), msg);
             }
             _ => {
                 println!("--> read: {} type: {}", msg, msg_type);

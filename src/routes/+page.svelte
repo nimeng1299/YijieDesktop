@@ -11,6 +11,9 @@
 
     invoke("init_app");
 
+    let infoDialog = $state("");
+    let deloy = $state(0);
+
     function showToast(message, type = "success") {
         console.log("toast: ", message, type);
         const toastContainer = document.getElementById("toast-container");
@@ -31,12 +34,22 @@
         showToast(message, type);
     });
 
-    // 监听change_to_hall事件
+    // 监听 change_to_hall 事件
     listen("login_success", (event) => {
         invoke("need_show_toast", {
             message: "登录成功",
             toastType: "success",
         });
+    });
+
+    // 监听change_to_hall事件
+    listen("show_info_dialog", (event) => {
+        infoDialog = event.payload;
+        document.getElementById("dialog_data").showModal();
+    });
+
+    listen("update_deloy", (event) => {
+        deloy = event.payload;
     });
 </script>
 
@@ -44,7 +57,8 @@
     <div class="title-bar">
         <div class="title-content">逆界</div>
         <div class="title-content" data-tauri-drag-region></div>
-        <div class="title-content">
+        <div class="title-content flex">
+            <div>延迟：{deloy} ms</div>
             <ReplyButton />
             <MinimizeButton />
             <MaximizeButton />
@@ -55,6 +69,21 @@
         <TabContent />
     </div>
     <div id="toast-container" class="toast toast-end"></div>
+    <dialog id="dialog_data" class="modal">
+        <div class="modal-box w-11/12 max-w-5xl">
+            <h3 class="text-lg font-bold">信息</h3>
+            <div class="dialog-data whitespace-pre-wrap">
+                {@html infoDialog}
+            </div>
+
+            <div class="modal-action">
+                <form method="dialog">
+                    <!-- if there is a button in form, it will close the modal -->
+                    <button class="btn">Close</button>
+                </form>
+            </div>
+        </div>
+    </dialog>
 </main>
 
 <style>
@@ -70,5 +99,9 @@
         display: flex;
         justify-content: center;
         align-items: center;
+    }
+    .dialog-data {
+        height: 65vh;
+        overflow-y: auto; /* 添加垂直滚动条 */
     }
 </style>
