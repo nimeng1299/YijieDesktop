@@ -19,7 +19,7 @@ impl Account {
                 nick_name: get_value(msgs[1]),
                 chat_level: get_value(msgs[2]).parse().unwrap_or(0),
                 chat_tip: get_value(msgs[3]),
-                other_user_info: get_value(msgs[4]),
+                other_user_info: crate::tauris::rich_to_html(&get_value(msgs[4]), &vec![]),
             })
         } else {
             bail!("account msg error")

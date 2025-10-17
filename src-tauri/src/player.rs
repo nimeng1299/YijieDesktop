@@ -269,7 +269,7 @@ impl Player {
                 println!("KeepLive Time: {} ms", this_time - send_time);
             }
             Msger::ShowInfoDialog => {
-                listen::show_info_dialog(self.app.clone(), msg);
+                listen::show_info_dialog(self.app.clone(), crate::tauris::rich_to_html(&msg, &vec!["click"]));
             }
             _ => {
                 println!("--> read: {} type: {}", msg, msg_type);

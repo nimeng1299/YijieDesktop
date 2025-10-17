@@ -31,3 +31,4 @@ java_string = "0.1.2"
 tokio = { version = "1.47.1", features = ["full"] }
 chrono = "0.4.42"
 tauri-plugin-dialog = "2"
+regex = "1.12.2"

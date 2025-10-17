@@ -7,6 +7,10 @@ use lazy_static::lazy_static;
 use crate::player;
 
 pub mod base;
+pub mod rich_string;
+
+pub use rich_string::rich_to_html;
+
 lazy_static! {
     pub static ref PLAYER_SOCKET: DashMap<u32, player::PlayerSocket> = DashMap::new();
 }

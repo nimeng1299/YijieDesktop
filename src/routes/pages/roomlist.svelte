@@ -81,7 +81,7 @@
                 <div class="card-body">
                     <h2 class="card-title">{account.nick_name}</h2>
                     <p>
-                        {account.other_user_info}
+                        {@html account.other_user_info}
                     </p>
                 </div>
             </div>
