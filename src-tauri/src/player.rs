@@ -51,6 +51,13 @@ impl PlayerSocket {
             let mut data_buffer: VecDeque<u8> = VecDeque::new();
             loop {
                 match read_stream.read(&mut buffer).await {
+                    Ok(0) => {
+                        println!("服务端断开链接!");
+                        let player_clone = Arc::clone(&player_read);
+                        let mut player = player_clone.lock().await;
+                        player.server_disconnect();
+                        break;
+                    }
                     Ok(n) => {
                         println!("read: {} bytes", n);
                         data_buffer.extend(&buffer[0..n]);
@@ -186,6 +193,7 @@ impl Player {
 
     pub async fn read(&mut self, msgs: String) -> Result<()> {
         let (msg_type, msg) = Msger::parse(msgs)?;
+        println!("Read type: {msg_type}");
         match msg_type {
             Msger::ConnSuccess => {
                 if msg == "Ok" {
@@ -269,7 +277,13 @@ impl Player {
                 println!("KeepLive Time: {} ms", this_time - send_time);
             }
             Msger::ShowInfoDialog => {
-                listen::show_info_dialog(self.app.clone(), crate::tauris::rich_to_html(&msg, &vec!["click"]));
+                listen::show_info_dialog(
+                    self.app.clone(),
+                    crate::tauris::rich_to_html(&msg, &vec!["click"]),
+                );
+            }
+            Msger::EnterRoomSuccess => {
+                self.data.change_mode(self.app.clone(), Modes::Game);
             }
             _ => {
                 println!("--> read: {} type: {}", msg, msg_type);
@@ -300,6 +314,12 @@ impl Player {
 
     pub fn get_data(&self) -> Data {
         self.data.clone()
+    }
+
+    // 服务端断开链接
+    pub fn server_disconnect(&mut self) {
+        self.data.change_mode(self.app.clone(), Modes::Login);
+        listen::show_toast("与服务端断开链接!", "error");
     }
 
     pub async fn change_reply(&mut self) {

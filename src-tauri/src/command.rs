@@ -24,10 +24,12 @@ pub fn need_show_toast(message: &str, toast_type: &str) {
 /// 刷新数据
 #[tauri::command]
 pub async fn refresh_data() -> Result<Data, String> {
-    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
-        Ok(player_socket.get_player().await.get_data())
+    let mut global = PLAYER_SOCKET.lock().await;
+
+    if let Some(ref mut socket) = *global {
+        Ok(socket.player.clone().lock().await.get_data())
     } else {
-        Err("player not exists".to_string())
+        Err("can do players".to_string())
     }
 }
 
@@ -76,14 +78,17 @@ pub async fn login(app: tauri::AppHandle, ip: &str, name: &str) -> Result<(), St
     if !login_success {
         return Err("login failed".to_string());
     }
-    PLAYER_SOCKET.insert(0, player_socket);
+    let mut global = PLAYER_SOCKET.lock().await;
+    *global = Some(player_socket);
     show_toast("登录请求中...", "info");
     Ok(())
 }
 
 #[tauri::command]
 pub async fn request_enter_room(room_name: &str) -> Result<(), String> {
-    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
+    let mut global = PLAYER_SOCKET.lock().await;
+
+    if let Some(ref mut player_socket) = *global {
         player_socket
             .get_player()
             .await
@@ -91,13 +96,15 @@ pub async fn request_enter_room(room_name: &str) -> Result<(), String> {
             .await;
         Ok(())
     } else {
-        Err("player not exists".to_string())
+        Err("can do players".to_string())
     }
 }
 
 #[tauri::command]
 pub async fn request_be_chess_player(side: &str) -> Result<(), String> {
-    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
+    let mut global = PLAYER_SOCKET.lock().await;
+
+    if let Some(ref mut player_socket) = *global {
         player_socket
             .get_player()
             .await
@@ -105,14 +112,16 @@ pub async fn request_be_chess_player(side: &str) -> Result<(), String> {
             .await;
         Ok(())
     } else {
-        Err("player not exists".to_string())
+        Err("can do players".to_string())
     }
 }
 
 //让座
 #[tauri::command]
 pub async fn request_leave_seat() -> Result<(), String> {
-    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
+    let mut global = PLAYER_SOCKET.lock().await;
+
+    if let Some(ref mut player_socket) = *global {
         player_socket
             .get_player()
             .await
@@ -120,14 +129,16 @@ pub async fn request_leave_seat() -> Result<(), String> {
             .await;
         Ok(())
     } else {
-        Err("player not exists".to_string())
+        Err("can do players".to_string())
     }
 }
 
 //认输
 #[tauri::command]
 pub async fn request_admit_defeat() -> Result<(), String> {
-    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
+    let mut global = PLAYER_SOCKET.lock().await;
+
+    if let Some(ref mut player_socket) = *global {
         player_socket
             .get_player()
             .await
@@ -135,14 +146,16 @@ pub async fn request_admit_defeat() -> Result<(), String> {
             .await;
         Ok(())
     } else {
-        Err("player not exists".to_string())
+        Err("can do players".to_string())
     }
 }
 
 //按钮requestCustomBottomEvent
 #[tauri::command]
 pub async fn request_custom_bottom_event(event: &str) -> Result<(), String> {
-    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
+    let mut global = PLAYER_SOCKET.lock().await;
+
+    if let Some(ref mut player_socket) = *global {
         player_socket
             .get_player()
             .await
@@ -150,14 +163,16 @@ pub async fn request_custom_bottom_event(event: &str) -> Result<(), String> {
             .await;
         Ok(())
     } else {
-        Err("player not exists".to_string())
+        Err("can do players".to_string())
     }
 }
 
 //落子
 #[tauri::command]
 pub async fn request_move_later(x: u32, y: u32) -> Result<(), String> {
-    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
+    let mut global = PLAYER_SOCKET.lock().await;
+
+    if let Some(ref mut player_socket) = *global {
         player_socket
             .get_player()
             .await
@@ -165,14 +180,16 @@ pub async fn request_move_later(x: u32, y: u32) -> Result<(), String> {
             .await;
         Ok(())
     } else {
-        Err("player not exists".to_string())
+        Err("can do players".to_string())
     }
 }
 
 /// 请求离开房间
 #[tauri::command]
 pub async fn request_leave_room() -> Result<(), String> {
-    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
+    let mut global = PLAYER_SOCKET.lock().await;
+
+    if let Some(ref mut player_socket) = *global {
         player_socket
             .get_player()
             .await
@@ -180,25 +197,29 @@ pub async fn request_leave_room() -> Result<(), String> {
             .await;
         Ok(())
     } else {
-        Err("player not exists".to_string())
+        Err("can do players".to_string())
     }
 }
 
 /// 开始/结束录制
 #[tauri::command]
 pub async fn change_reply() -> Result<(), String> {
-    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
+    let mut global = PLAYER_SOCKET.lock().await;
+
+    if let Some(ref mut player_socket) = *global {
         player_socket.get_player().await.change_reply().await;
         Ok(())
     } else {
-        Err("player not exists".to_string())
+        Err("can do players".to_string())
     }
 }
 
 /// 名人堂
 #[tauri::command]
 pub async fn request_player_rank_list() -> Result<(), String> {
-    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
+    let mut global = PLAYER_SOCKET.lock().await;
+
+    if let Some(ref mut player_socket) = *global {
         player_socket
             .get_player()
             .await
@@ -206,14 +227,16 @@ pub async fn request_player_rank_list() -> Result<(), String> {
             .await;
         Ok(())
     } else {
-        Err("player not exists".to_string())
+        Err("can do players".to_string())
     }
 }
 
 /// 热棋榜
 #[tauri::command]
 pub async fn request_room_rank_list() -> Result<(), String> {
-    if let Some(player_socket) = PLAYER_SOCKET.get(&0) {
+    let mut global = PLAYER_SOCKET.lock().await;
+
+    if let Some(ref mut player_socket) = *global {
         player_socket
             .get_player()
             .await
@@ -221,6 +244,40 @@ pub async fn request_room_rank_list() -> Result<(), String> {
             .await;
         Ok(())
     } else {
-        Err("player not exists".to_string())
+        Err("can do players".to_string())
+    }
+}
+
+/// 排行榜(棋房间内)
+#[tauri::command]
+pub async fn request_chess_statistics(room_name: String) -> Result<(), String> {
+    let mut global = PLAYER_SOCKET.lock().await;
+
+    if let Some(ref mut player_socket) = *global {
+        player_socket
+            .get_player()
+            .await
+            .send(Msger::RequestChessStatistics.to_msg(room_name))
+            .await;
+        Ok(())
+    } else {
+        Err("can do players".to_string())
+    }
+}
+
+/// 棋柜子
+#[tauri::command]
+pub async fn request_chess_rule(room_name: String) -> Result<(), String> {
+    let mut global = PLAYER_SOCKET.lock().await;
+
+    if let Some(ref mut player_socket) = *global {
+        player_socket
+            .get_player()
+            .await
+            .send(Msger::RequestChessRule.to_msg(room_name))
+            .await;
+        Ok(())
+    } else {
+        Err("can do players".to_string())
     }
 }

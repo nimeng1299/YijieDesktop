@@ -28,6 +28,8 @@ pub fn run() {
             command::change_reply,
             command::request_player_rank_list,
             command::request_room_rank_list,
+            command::request_chess_statistics,
+            command::request_chess_rule,
             listen::show_toast,
             listen::login_success,
             listen::change_mode,

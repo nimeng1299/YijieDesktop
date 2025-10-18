@@ -33,7 +33,7 @@
     <div class="game-right">
         <GameSpectator room_name={room.name} spectator={room.spectator}
         ></GameSpectator>
-        <GameButtons {buttons}></GameButtons>
+        <GameButtons {buttons} room_name={room.name}></GameButtons>
     </div>
 </div>
 
@@ -53,9 +53,9 @@
         width: 100%; /* 添加宽度以占满 game-left */
     }
     .game-middle {
-        width: 60%;
+        width: 50%;
     }
     .game-right {
-        width: 15%;
+        width: 25%;
     }
 </style>

@@ -2,7 +2,7 @@
     import { invoke } from "@tauri-apps/api/core";
     import { listen } from "@tauri-apps/api/event";
 
-    let { buttons } = $props();
+    let { buttons, room_name } = $props();
     let reply = $state("开始录制");
 
     listen("is_start_reply", (event) => {
@@ -20,8 +20,14 @@
     function admitDefeat() {
         invoke("request_admit_defeat", {});
     }
-    function LeaveRoom() {
+    function leaveRoom() {
         invoke("request_leave_room", {});
+    }
+    function requestChessStatistics() {
+        invoke("request_chess_statistics", { roomName: room_name });
+    }
+    function requestChessRule() {
+        invoke("request_chess_rule", { roomName: room_name });
     }
     function customBottomEvent(event) {
         invoke("request_custom_bottom_event", { event: event });
@@ -32,7 +38,7 @@
 </script>
 
 <div style="">
-    <div class="flex items-center justify-between margin-top: 10px;">
+    <div class="flex items-center justify-center gap-2 flex-wrap">
         <button class="btn btn-outline btn-accent" onclick={leaveSeat}
             >让座</button
         >
@@ -40,16 +46,30 @@
             >认输</button
         >
     </div>
-    <button
-        class="btn btn-outline btn-accent"
-        style="margin-top: 5px;"
-        onclick={changeReply}>{reply}</button
-    >
-    <button
-        class="btn btn-outline btn-accent"
-        style="margin-top: 5px;"
-        onclick={LeaveRoom}>离开房间</button
-    >
+    <div class="flex items-center justify-center gap-2 flex-wrap">
+        <button
+            class="btn btn-outline btn-accent"
+            style="margin-top: 5px;"
+            onclick={changeReply}>{reply}</button
+        >
+        <button
+            class="btn btn-outline btn-accent"
+            style="margin-top: 5px;"
+            onclick={leaveRoom}>离开房间</button
+        >
+    </div>
+    <div class="flex items-center justify-center gap-2 flex-wrap">
+        <button
+            class="btn btn-outline btn-accent"
+            style="margin-top: 5px;"
+            onclick={requestChessStatistics}>排行榜单</button
+        >
+        <button
+            class="btn btn-outline btn-accent"
+            style="margin-top: 5px;"
+            onclick={requestChessRule}>查看规则</button
+        >
+    </div>
     <div style="margin-top: 10px;">
         {#each buttons as button}
             <button

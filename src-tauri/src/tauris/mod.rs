@@ -3,6 +3,8 @@ use std::sync::atomic::AtomicU32;
 use anyhow::{bail, Result};
 use dashmap::DashMap;
 use lazy_static::lazy_static;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 use crate::player;
 
@@ -12,15 +14,14 @@ pub mod rich_string;
 pub use rich_string::rich_to_html;
 
 lazy_static! {
-    pub static ref PLAYER_SOCKET: DashMap<u32, player::PlayerSocket> = DashMap::new();
+    pub static ref PLAYER_SOCKET: Arc<Mutex<Option<player::PlayerSocket>>> =
+        Arc::new(Mutex::new(None));
 }
 
-/// player socket
-pub fn do_player_sockets(f: impl FnOnce(&mut player::PlayerSocket)) {
-    if let Some(mut entry) = PLAYER_SOCKET.get_mut(&0) {
-        let ps = entry.value_mut();
-        f(ps);
-    } else {
-        eprintln!("can't get mut PLAYER_SOCKET");
+pub fn do_player_socket(f: impl FnOnce(&mut player::PlayerSocket)) {
+    if let Ok(mut global) = PLAYER_SOCKET.try_lock() {
+        if let Some(ref mut socket) = *global {
+            f(socket);
+        }
     }
 }
