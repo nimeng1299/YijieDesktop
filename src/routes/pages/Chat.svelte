@@ -1,4 +1,5 @@
 <script>
+    import { tick } from "svelte";
     import { invoke } from "@tauri-apps/api/core";
     import { listen } from "@tauri-apps/api/event";
     let messages = $state([]);
@@ -17,9 +18,11 @@
             name: name,
             message: message,
         });
-        if (scrollContainer) {
-            scrollContainer.scrollTop = scrollContainer.scrollHeight;
-        }
+        tick().then(() => {
+            if (scrollContainer) {
+                scrollContainer.scrollTop = scrollContainer.scrollHeight;
+            }
+        });
     });
 
     function send_message(msg) {

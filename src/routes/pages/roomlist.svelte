@@ -1,7 +1,10 @@
 <script>
     import { invoke } from "@tauri-apps/api/core";
+    import { match } from "pinyin-pro";
     // 接收传递的数据
     let { datas, account, modes } = $props();
+    let input_msg = $state(""); // 用于绑定 input 内容
+    import { pinyin } from "pinyin-pro";
 
     // 处理玩家信息
     function append_player(data) {
@@ -27,54 +30,72 @@
     function enter_room(room_name) {
         invoke("request_enter_room", { roomName: room_name });
     }
+
+    function match_name(room_name, pinyin) {
+        if (pinyin === "" || pinyin === null) {
+            return true;
+        }
+        return match(room_name, pinyin, { v: true }) !== null;
+    }
 </script>
 
 <div class="roomlist-container border-solid" hidden={modes !== "roomlist"}>
     <div class="roomlist-layout">
-        <div class="left-section">
-            <!-- 左侧内容区域 -->
-            <ul class="list bg-base-100 rounded-box shadow-md">
-                <li class="p-4 pb-2 text-xs opacity-60 tracking-wide">
-                    房间列表
-                </li>
-                {#each datas.rooms as data}
-                    <li class="list-row">
-                        <div>
-                            <div>{data.name}</div>
-                            <div
-                                class="text-xs uppercase font-semibold opacity-60"
-                            >
-                                {append_player(data)}
-                            </div>
-                        </div>
-                        <p class="list-col-wrap text-xs">
-                            {data.introduction}
-                        </p>
-                        <div class="flex justify-end">
-                            <button
-                                class="btn btn-square btn-ghost"
-                                onclick={() => enter_room(data.name)}
-                            >
-                                <svg
-                                    class="size-[1.2em]"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 24 24"
-                                    ><g
-                                        stroke-linejoin="round"
-                                        stroke-linecap="round"
-                                        stroke-width="2"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        ><path d="M6 3L20 12 6 21 6 3z"
-                                        ></path></g
-                                    ></svg
-                                >
-                            </button>
-                        </div>
+        <div class="w-[65%]">
+            <input
+                class="input join-item w-full"
+                bind:value={input_msg}
+                placeholder="搜索房间标题(支持拼音搜索)"
+            />
+            <div class="left-section">
+                <!-- 左侧内容区域 -->
+
+                <ul class="list bg-base-100 rounded-box shadow-md">
+                    <li class="p-4 pb-2 text-xs opacity-60 tracking-wide">
+                        房间列表
                     </li>
-                {/each}
-            </ul>
+                    {#each datas.rooms as data}
+                        {#if match_name(data.name, input_msg)}
+                            <li class="list-row">
+                                <div>
+                                    <div>{data.name}</div>
+                                    <div
+                                        class="text-xs uppercase font-semibold opacity-60"
+                                    >
+                                        {append_player(data)}
+                                    </div>
+                                </div>
+                                <p class="list-col-wrap text-xs">
+                                    {data.introduction}
+                                </p>
+                                <div class="flex justify-end">
+                                    <button
+                                        class="btn btn-square btn-ghost"
+                                        onclick={() => enter_room(data.name)}
+                                    >
+                                        <svg
+                                            class="size-[1.2em]"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            ><g
+                                                stroke-linejoin="round"
+                                                stroke-linecap="round"
+                                                stroke-width="2"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                ><path d="M6 3L20 12 6 21 6 3z"
+                                                ></path></g
+                                            ></svg
+                                        >
+                                    </button>
+                                </div>
+                            </li>
+                        {/if}
+                    {/each}
+                </ul>
+            </div>
         </div>
+
         <div class="right-section" style="padding-left: 10px; ">
             <!-- 右侧内容区域 -->
             <div class="card card-dash shadow-sm">
@@ -112,7 +133,6 @@
         display: flex;
     }
     .left-section {
-        width: 65%;
         max-height: 90vh; /* 设置最大高度 */
         overflow-y: auto; /* 添加垂直滚动条 */
     }
