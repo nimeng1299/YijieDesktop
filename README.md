@@ -13,5 +13,6 @@ This template should help get you started developing with Tauri, SvelteKit and T
 
 1. 剩下几个sign
 2. 房间列表搜索
-3. 聊天
-4. bug: tcp获取数据不及时
+3. 预设聊天
+4. Theme Controller
+5. bug: 聊天表格更新不能滚动到最下

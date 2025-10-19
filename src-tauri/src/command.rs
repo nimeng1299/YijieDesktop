@@ -265,7 +265,7 @@ pub async fn request_chess_statistics(room_name: String) -> Result<(), String> {
     }
 }
 
-/// 棋柜子
+/// 棋规则
 #[tauri::command]
 pub async fn request_chess_rule(room_name: String) -> Result<(), String> {
     let mut global = PLAYER_SOCKET.lock().await;
@@ -275,6 +275,23 @@ pub async fn request_chess_rule(room_name: String) -> Result<(), String> {
             .get_player()
             .await
             .send(Msger::RequestChessRule.to_msg(room_name))
+            .await;
+        Ok(())
+    } else {
+        Err("can do players".to_string())
+    }
+}
+
+/// 棋柜子
+#[tauri::command]
+pub async fn send_message(msg: String) -> Result<(), String> {
+    let mut global = PLAYER_SOCKET.lock().await;
+
+    if let Some(ref mut player_socket) = *global {
+        player_socket
+            .get_player()
+            .await
+            .send(Msger::RequestSendCustomMessage.to_msg(msg))
             .await;
         Ok(())
     } else {

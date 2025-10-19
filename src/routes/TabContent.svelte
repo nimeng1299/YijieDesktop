@@ -121,8 +121,10 @@
 </script>
 
 <div
-    class="p-4"
-    oncontextmenu={show_menu}
+    class="p-4 h-full"
+    oncontextmenu={(e) => {
+        show_menu(e);
+    }}
     onclick={() => {
         menuVisible = false;
     }}

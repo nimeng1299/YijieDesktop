@@ -87,3 +87,9 @@ pub fn show_info_dialog(app: tauri::AppHandle, data: String) {
 pub fn update_deloy(app: tauri::AppHandle, deloy: i64) {
     app.emit("update_deloy", deloy).unwrap();
 }
+
+/// 房间聊天更新
+#[tauri::command]
+pub fn push_chat_message(app: tauri::AppHandle, id: &str, user: &str, message: &str) {
+    app.emit("push_chat_message", [id, user, message]).unwrap();
+}

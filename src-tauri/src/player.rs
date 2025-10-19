@@ -63,7 +63,7 @@ impl PlayerSocket {
                         data_buffer.extend(&buffer[0..n]);
 
                         // 循环处理所有完整数据包
-                        if data_buffer.len() >= 2 {
+                        while data_buffer.len() >= 2 {
                             let data_len =
                                 u16::from_be_bytes([data_buffer[0], data_buffer[1]]) as usize;
 
@@ -85,6 +85,8 @@ impl PlayerSocket {
                                         }
                                     }
                                 });
+                            } else {
+                                break;
                             }
                         }
                     }
@@ -284,6 +286,13 @@ impl Player {
             }
             Msger::EnterRoomSuccess => {
                 self.data.change_mode(self.app.clone(), Modes::Game);
+            }
+            Msger::PushChatMessage => {
+                //{msgId}&{nickName}&{msg}
+                let parts: Vec<&str> = msg.splitn(3, '&').collect();
+                if parts.len() >= 3 {
+                    listen::push_chat_message(self.app.clone(), parts[0], parts[1], parts[2]);
+                }
             }
             _ => {
                 println!("--> read: {} type: {}", msg, msg_type);

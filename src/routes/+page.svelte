@@ -65,9 +65,8 @@
             <CloseButton />
         </div>
     </div>
-    <div style="main-div  ">
-        <TabContent />
-    </div>
+    <div class="h-[95vh]"><TabContent /></div>
+
     <div id="toast-container" class="toast toast-end"></div>
     <dialog id="dialog_data" class="modal">
         <div class="modal-box w-11/12 max-w-5xl">
@@ -95,11 +94,7 @@
     .title-content {
         height: 25px;
     }
-    .main-div {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
+
     .dialog-data {
         height: 65vh;
         overflow-y: auto; /* 添加垂直滚动条 */
