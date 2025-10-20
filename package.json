@@ -19,6 +19,7 @@
     "@tauri-apps/plugin-opener": "^2",
     "daisyui": "^5.0.51",
     "konva": "^10.0.2",
+    "martinez-polygon-clipping": "^0.7.4",
     "pinyin-pro": "^3.27.0",
     "tailwindcss": "^4.1.12"
   },

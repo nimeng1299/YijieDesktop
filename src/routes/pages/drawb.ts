@@ -1,4 +1,6 @@
 import Konva from "konva";
+import type { Ring } from "konva/lib/shapes/Ring";
+import { union, type Polygon } from "martinez-polygon-clipping";
 
 function numberToChineseObj(num: number): string {
   const numberMap: { [key: number]: string } = {
@@ -245,51 +247,46 @@ export function drawSignBefore(
     let [k, ..._] = Object.keys(item);
     let v = item[k];
     if (k === "AroundSign") {
-      const gridList = v.index.map((index) => {
+      let unionPoly: any = null;
+      v.index.map((index) => {
         let [col, row] = toIndex(index, rows_len, cols_len);
-        return { row, col, index };
+        const x = board_x + col * finalWidth;
+        const y = board_y + row * finalWidth;
+        const square = [
+          [
+            [x, y],
+            [x + finalWidth, y],
+            [x + finalWidth, y + finalWidth],
+            [x, y + finalWidth],
+            [x, y], // 闭合
+          ],
+        ];
+        unionPoly = unionPoly ? union(unionPoly, square) : square;
+        const rect = new Konva.Rect({
+          x: x,
+          y: y,
+          width: finalWidth,
+          height: finalWidth,
+          fill: convertColorFormat(v.bg_color),
+        });
+        layer.add(rect);
       });
-      // 计算选中区域边界
-      const minRow = Math.min(...gridList.map((cell) => cell.row));
-      const maxRow = Math.max(...gridList.map((cell) => cell.row));
-      const minCol = Math.min(...gridList.map((cell) => cell.col));
-      const maxCol = Math.max(...gridList.map((cell) => cell.col));
-      // 创建选中区域路径
-      const selection = new Konva.Shape({
-        name: "selection",
-        x: board_x,
-        y: board_y,
-        sceneFunc: function (context, shape) {
-          context.beginPath();
+      if (!unionPoly) return;
+      const Ring = unionPoly[0];
+      Ring.map((outerRing) => {
+        const points = outerRing.flat();
+        const polygon = new Konva.Line({
+          points: points,
+          // fill: convertColorFormat(v.bg_color),
+          stroke: convertColorFormat(v.ed_color),
+          strokeWidth: v.size * 2, // 基础线宽为2，乘以缩放因子
+          cornerRadius: finalWidth / 3,
+          opacity: 0.7,
+          closed: true, // 关键：闭合多边形
+        });
 
-          // 绘制外部矩形
-          context.rect(
-            minCol * finalWidth,
-            minRow * finalWidth,
-            (maxCol - minCol + 1) * finalWidth,
-            (maxRow - minRow + 1) * finalWidth,
-          );
-
-          // 绘制内部网格
-          for (const cell of gridList) {
-            context.rect(
-              cell.col * finalWidth,
-              cell.row * finalWidth,
-              finalWidth,
-              finalWidth,
-            );
-          }
-
-          context.closePath();
-          context.fillStrokeShape(shape);
-        },
-        fill: convertColorFormat(v.bg_color),
-        stroke: convertColorFormat(v.ed_color),
-        strokeWidth: v.size * 2, // 基础线宽为2，乘以缩放因子
-        cornerRadius: finalWidth / 3,
-        opacity: 0.7,
+        layer.add(polygon);
       });
-      layer.add(selection);
     } else if (k === "BadgeSign") {
     } else if (k === "CacheSign") {
     } else if (k === "ColorSign") {
