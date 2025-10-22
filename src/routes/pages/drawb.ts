@@ -1503,7 +1503,66 @@ export function drawSignAfter(
     } else if (k === "FigureSign") {
     } else if (k === "GroundSign") {
     } else if (k === "LineSign") {
-      //
+      let [start_x, start_y] = toIndex(v.start, rows_len, cols_len);
+      let [end_x, end_y] = toIndex(v.end, rows_len, cols_len);
+      let color = convertColorFormat(v.color);
+
+      let sx = board_x + start_x * finalWidth + finalWidth / 2;
+      let sy = board_x + start_y * finalWidth + finalWidth / 2;
+      let ex = board_x + end_x * finalWidth + finalWidth / 2;
+      let ey = board_x + end_y * finalWidth + finalWidth / 2;
+
+      const line = new Konva.Line({
+        points: [sx, sy, ex, ey],
+        stroke: color,
+        strokeWidth: 2,
+        lineCap: "round",
+        lineJoin: "round",
+      });
+      layer.add(line);
+
+      const drawTriangle = (
+        fromX: number,
+        fromY: number,
+        toX: number,
+        toY: number,
+        height: number,
+        bottom: number,
+      ) => {
+        const juli = Math.sqrt((toX - fromX) ** 2 + (toY - fromY) ** 2);
+        const juliX = toX - fromX;
+        const juliY = toY - fromY;
+
+        const dianX = toX - (height / juli) * juliX;
+        const dianY = toY - (height / juli) * juliY;
+
+        // 箭头的三个顶点
+        const points = [
+          toX,
+          toY,
+          dianX + (bottom / juli) * juliY,
+          dianY - (bottom / juli) * juliX,
+          dianX - (bottom / juli) * juliY,
+          dianY + (bottom / juli) * juliX,
+        ];
+
+        const triangle = new Konva.Line({
+          points,
+          fill: color,
+          closed: true,
+          stroke: color,
+          strokeWidth: 1,
+        });
+
+        layer.add(triangle);
+      };
+
+      if (v.style === "1") {
+        drawTriangle(sx, sy, ex, ey, finalWidth / 4, finalWidth / 6);
+      } else if (v.style === "2") {
+        drawTriangle(sx, sy, ex, ey, finalWidth / 4, finalWidth / 6);
+        drawTriangle(ex, ey, sx, sy, finalWidth / 4, finalWidth / 6);
+      }
     } else if (k === "PathSign") {
     } else if (k === "TextSign") {
       let [x, y] = toIndex(v.index, rows_len, cols_len);
