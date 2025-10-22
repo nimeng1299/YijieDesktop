@@ -24,6 +24,48 @@ function numberToChineseObj(num: number): string {
   }
 }
 
+// 创建椭圆圆弧
+function createEllipseArc(
+  left,
+  top,
+  right,
+  bottom,
+  startAngle, // 单位：°
+  angle, // 扫过多少角度 单位：°
+  color = "black",
+  strokeWidth = 2,
+) {
+  const width = right - left;
+  const height = bottom - top;
+  const centerX = left + width / 2;
+  const centerY = top + height / 2;
+  const rx = width / 2;
+  const ry = height / 2;
+
+  const ellipseArc = new Konva.Shape({
+    x: centerX,
+    y: centerY,
+    stroke: color,
+    strokeWidth,
+    sceneFunc: (context, shape) => {
+      context.beginPath();
+      // 绘制椭圆弧
+      context.ellipse(
+        0,
+        0,
+        rx,
+        ry,
+        0,
+        (startAngle * Math.PI) / 180,
+        (startAngle + angle * Math.PI) / 180,
+      );
+      context.strokeShape(shape);
+    },
+  });
+
+  return ellipseArc;
+}
+
 // 计算绘制哪个文字 i：坐标，len：长度，mode：哪种模式
 // 1- 6 英文字母正序，英文字母倒序，阿拉伯数字正序，阿拉伯数字倒序，中文数字正序，中文数字倒序
 export function getText(i, len, mode) {
@@ -302,7 +344,1020 @@ export function drawSignBefore(
         layer.add(rect);
       }
     } else if (k === "FigureSign") {
-      //
+      for (const index of v.tiles) {
+        let [sx, sy] = toIndex(index[0], rows_len, cols_len);
+        let [ex, ey] = toIndex(index[1], rows_len, cols_len);
+        let color = convertColorFormat(v.color);
+        // 矩形包围框
+        let left = board_x + sx * finalWidth;
+        let top = board_y + sy * finalWidth;
+        let right = board_x + ex * finalWidth + finalWidth;
+        let bottom = board_y + ey * finalWidth + finalWidth;
+
+        let mid_x = (left + right) / 2;
+        let mid_y = (top + bottom) / 2;
+
+        let half_x = (right - left) / 2;
+        let half_y = (bottom - top) / 2;
+
+        // drawMidSideLine
+        if (v.mid_side_line.length === 8) {
+          if (v.mid_side_line[0] === "1") {
+            const line = new Konva.Line({
+              points: [left, top, left, mid_y],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.mid_side_line[1] === "1") {
+            const line = new Konva.Line({
+              points: [left, top, mid_x, top],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.mid_side_line[2] === "1") {
+            const line = new Konva.Line({
+              points: [right, top, mid_x, top],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.mid_side_line[3] === "1") {
+            const line = new Konva.Line({
+              points: [right, top, right, mid_y],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.mid_side_line[4] === "1") {
+            const line = new Konva.Line({
+              points: [right, bottom, mid_x, bottom],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.mid_side_line[5] === "1") {
+            const line = new Konva.Line({
+              points: [right, bottom, mid_x, bottom],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.mid_side_line[6] === "1") {
+            const line = new Konva.Line({
+              points: [left, bottom, mid_x, bottom],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.mid_side_line[7] === "1") {
+            const line = new Konva.Line({
+              points: [left, bottom, left, mid_y],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+        }
+
+        // drawMidCenLine
+        if (v.mid_cen_line.length === 4) {
+          if (v.mid_cen_line[0] === "1") {
+            const line = new Konva.Line({
+              points: [mid_x, top, mid_x, mid_y],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.mid_cen_line[1] === "1") {
+            const line = new Konva.Line({
+              points: [right, mid_y, mid_x, mid_y],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.mid_cen_line[2] === "1") {
+            const line = new Konva.Line({
+              points: [mid_x, bottom, mid_x, mid_y],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.mid_cen_line[3] === "1") {
+            const line = new Konva.Line({
+              points: [left, mid_y, mid_x, mid_y],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+        }
+
+        // drawCorCenLine
+        if (v.cor_cen_line.length === 4) {
+          if (v.cor_cen_line[0] === "1") {
+            const line = new Konva.Line({
+              points: [left, top, mid_x, mid_y],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.cor_cen_line[1] === "1") {
+            const line = new Konva.Line({
+              points: [right, top, mid_x, mid_y],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.cor_cen_line[2] === "1") {
+            const line = new Konva.Line({
+              points: [right, bottom, mid_x, mid_y],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.cor_cen_line[3] === "1") {
+            const line = new Konva.Line({
+              points: [left, bottom, mid_x, mid_y],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+        }
+
+        // drawAdjMidLine
+        if (v.adj_mid_line.length === 4) {
+          if (v.adj_mid_line[0] === "1") {
+            const line = new Konva.Line({
+              points: [left, mid_y, mid_x, top],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.adj_mid_line[1] === "1") {
+            const line = new Konva.Line({
+              points: [mid_x, top, right, mid_y],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.adj_mid_line[2] === "1") {
+            const line = new Konva.Line({
+              points: [right, mid_y, mid_x, bottom],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.adj_mid_line[3] === "1") {
+            const line = new Konva.Line({
+              points: [mid_x, bottom, left, mid_y],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+        }
+
+        // drawCorMidLine
+        if (v.cor_mid_line.length === 8) {
+          if (v.cor_mid_line[0] === "1") {
+            const line = new Konva.Line({
+              points: [left, top, mid_x, bottom],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.cor_mid_line[1] === "1") {
+            const line = new Konva.Line({
+              points: [left, top, right, mid_y],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.cor_mid_line[2] === "1") {
+            const line = new Konva.Line({
+              points: [right, top, left, mid_y],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.cor_mid_line[3] === "1") {
+            const line = new Konva.Line({
+              points: [right, top, mid_x, bottom],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.cor_mid_line[4] === "1") {
+            const line = new Konva.Line({
+              points: [right, bottom, mid_x, top],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.cor_mid_line[5] === "1") {
+            const line = new Konva.Line({
+              points: [right, bottom, left, mid_y],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.cor_mid_line[6] === "1") {
+            const line = new Konva.Line({
+              points: [left, bottom, right, mid_y],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+          if (v.cor_mid_line[7] === "1") {
+            const line = new Konva.Line({
+              points: [left, bottom, mid_x, top],
+              stroke: color,
+              strokeWidth: 2,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            layer.add(line);
+          }
+        }
+
+        // drawCompCenArc
+        if (v.comp_cen_arc.length === 4) {
+          if (v.comp_cen_arc[0] === "1") {
+            let arc = createEllipseArc(
+              left,
+              top,
+              right,
+              bottom,
+              180,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.comp_cen_arc[1] === "1") {
+            let arc = createEllipseArc(
+              left,
+              top,
+              right,
+              bottom,
+              270,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.comp_cen_arc[2] === "1") {
+            let arc = createEllipseArc(left, top, right, bottom, 0, 90, color);
+            layer.add(arc);
+          }
+          if (v.comp_cen_arc[3] === "1") {
+            let arc = createEllipseArc(left, top, right, bottom, 90, 90, color);
+            layer.add(arc);
+          }
+        }
+
+        // drawCenExpArc
+        if (v.cen_exp_arc.length === 8) {
+          if (v.cen_exp_arc[0] === "1") {
+            let arc = createEllipseArc(
+              left,
+              top - half_x,
+              right,
+              top + half_y,
+              90,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.cen_exp_arc[1] === "1") {
+            let arc = createEllipseArc(
+              left - half_x,
+              top,
+              mid_x,
+              bottom,
+              270,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.cen_exp_arc[2] === "1") {
+            let arc = createEllipseArc(
+              mid_x,
+              top,
+              right + half_x,
+              bottom,
+              180,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.cen_exp_arc[3] === "1") {
+            let arc = createEllipseArc(
+              left,
+              top - half_y,
+              right,
+              top + half_y,
+              0,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.cen_exp_arc[4] === "1") {
+            let arc = createEllipseArc(
+              left,
+              mid_y,
+              right,
+              bottom + half_y,
+              270,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.cen_exp_arc[5] === "1") {
+            let arc = createEllipseArc(
+              mid_x,
+              top,
+              right + half_x,
+              bottom,
+              90,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.cen_exp_arc[6] === "1") {
+            let arc = createEllipseArc(
+              left - half_x,
+              top,
+              mid_x,
+              bottom,
+              0,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.cen_exp_arc[7] === "1") {
+            let arc = createEllipseArc(
+              left,
+              mid_y,
+              right,
+              bottom + half_y,
+              180,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+        }
+
+        // drawCorExpArc
+        if (v.cor_exp_arc.length === 4) {
+          if (v.cor_exp_arc[0] === "1") {
+            let arc = createEllipseArc(
+              left - half_x,
+              top - half_y,
+              mid_x,
+              mid_y,
+              0,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.cor_exp_arc[1] === "1") {
+            let arc = createEllipseArc(
+              mid_x,
+              top - half_y,
+              right + half_x,
+              mid_y,
+              90,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.cor_exp_arc[2] === "1") {
+            let arc = createEllipseArc(
+              mid_x,
+              mid_y,
+              right + half_x,
+              bottom + half_y,
+              180,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.cor_exp_arc[3] === "1") {
+            let arc = createEllipseArc(
+              left - half_x,
+              mid_y,
+              mid_x,
+              bottom + half_y,
+              270,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+        }
+
+        // drawCorCenArc
+        if (v.cor_cen_arc.length === 4) {
+          let width = right - left;
+          let height = bottom - top;
+          if (v.cor_cen_arc[0] === "1") {
+            let arc = createEllipseArc(
+              left - width,
+              top - height,
+              right,
+              bottom,
+              0,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.cor_cen_arc[1] === "1") {
+            let arc = createEllipseArc(
+              left,
+              top - height,
+              right + width,
+              bottom,
+              90,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.cor_cen_arc[2] === "1") {
+            let arc = createEllipseArc(
+              left,
+              top,
+              right + width,
+              bottom + height,
+              180,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.cor_cen_arc[3] === "1") {
+            let arc = createEllipseArc(
+              left - width,
+              top,
+              right,
+              bottom + height,
+              270,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+        }
+
+        // drawSideExpArc
+        if (v.side_exp_arc.length === 8) {
+          let width = right - left;
+          let height = bottom - top;
+          if (v.side_exp_arc[0] === "1") {
+            let arc = createEllipseArc(
+              left - half_x,
+              top,
+              mid_x,
+              bottom + height,
+              270,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.side_exp_arc[1] === "1") {
+            let arc = createEllipseArc(
+              left,
+              top - half_y,
+              right + width,
+              mid_y,
+              90,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.side_exp_arc[2] === "1") {
+            let arc = createEllipseArc(
+              left - width,
+              top - half_y,
+              right,
+              mid_y,
+              0,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.side_exp_arc[3] === "1") {
+            let arc = createEllipseArc(
+              mid_x,
+              top,
+              right + half_x,
+              bottom + height,
+              180,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.side_exp_arc[4] === "1") {
+            let arc = createEllipseArc(
+              mid_x,
+              top - height,
+              right + half_x,
+              bottom,
+              90,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.side_exp_arc[5] === "1") {
+            let arc = createEllipseArc(
+              left - width,
+              mid_y,
+              right,
+              bottom + half_y,
+              270,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.side_exp_arc[6] === "1") {
+            let arc = createEllipseArc(
+              left,
+              mid_y,
+              right + width,
+              bottom + half_y,
+              180,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.side_exp_arc[7] === "1") {
+            let arc = createEllipseArc(
+              left - half_x,
+              top - height,
+              mid_x,
+              bottom,
+              0,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+        }
+
+        // drawCorMidArc
+        if (v.cor_mid_arc.length === 8) {
+          let width = right - left;
+          let height = bottom - top;
+          if (v.cor_mid_arc[0] === "1") {
+            let arc = createEllipseArc(
+              left,
+              top - height,
+              right,
+              top + height,
+              90,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.cor_mid_arc[1] === "1") {
+            let arc = createEllipseArc(
+              left - width,
+              top,
+              right,
+              bottom,
+              270,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.cor_mid_arc[2] === "1") {
+            let arc = createEllipseArc(
+              left,
+              top,
+              right + width,
+              bottom,
+              180,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.cor_mid_arc[3] === "1") {
+            let arc = createEllipseArc(
+              left,
+              top - height,
+              right,
+              top + height,
+              0,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.cor_mid_arc[4] === "1") {
+            let arc = createEllipseArc(
+              left,
+              top,
+              right,
+              bottom + height,
+              270,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.cor_mid_arc[5] === "1") {
+            let arc = createEllipseArc(
+              left,
+              top,
+              right + width,
+              bottom,
+              90,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.cor_mid_arc[6] === "1") {
+            let arc = createEllipseArc(
+              left - width,
+              top,
+              right,
+              bottom,
+              0,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+          if (v.cor_mid_arc[7] === "1") {
+            let arc = createEllipseArc(
+              left,
+              top,
+              right,
+              bottom + height,
+              180,
+              90,
+              color,
+            );
+            layer.add(arc);
+          }
+        }
+
+        // drawCompPoint
+        if (v.comp_point.length === 9) {
+          if (v.comp_point[0] === "1") {
+            const circle = new Konva.Circle({
+              x: left,
+              y: top,
+              radius: 2,
+              fill: color,
+            });
+            layer.add(circle);
+          }
+          if (v.comp_point[1] === "1") {
+            const circle = new Konva.Circle({
+              x: mid_x,
+              y: top,
+              radius: 2,
+              fill: color,
+            });
+            layer.add(circle);
+          }
+          if (v.comp_point[2] === "1") {
+            const circle = new Konva.Circle({
+              x: right,
+              y: top,
+              radius: 2,
+              fill: color,
+            });
+            layer.add(circle);
+          }
+          if (v.comp_point[3] === "1") {
+            const circle = new Konva.Circle({
+              x: right,
+              y: mid_y,
+              radius: 2,
+              fill: color,
+            });
+            layer.add(circle);
+          }
+          if (v.comp_point[4] === "1") {
+            const circle = new Konva.Circle({
+              x: right,
+              y: bottom,
+              radius: 2,
+              fill: color,
+            });
+            layer.add(circle);
+          }
+          if (v.comp_point[5] === "1") {
+            const circle = new Konva.Circle({
+              x: mid_x,
+              y: bottom,
+              radius: 2,
+              fill: color,
+            });
+            layer.add(circle);
+          }
+          if (v.comp_point[6] === "1") {
+            const circle = new Konva.Circle({
+              x: left,
+              y: bottom,
+              radius: 2,
+              fill: color,
+            });
+            layer.add(circle);
+          }
+          if (v.comp_point[7] === "1") {
+            const circle = new Konva.Circle({
+              x: left,
+              y: mid_y,
+              radius: 2,
+              fill: color,
+            });
+            layer.add(circle);
+          }
+          if (v.comp_point[8] === "1") {
+            const circle = new Konva.Circle({
+              x: mid_x,
+              y: mid_y,
+              radius: 2,
+              fill: color,
+            });
+            layer.add(circle);
+          }
+          if (v.comp_point[0] === "1") {
+            const circle = new Konva.Circle({
+              x: left,
+              y: top,
+              radius: 2,
+              fill: color,
+            });
+            layer.add(circle);
+          }
+        }
+
+        // drawCompAngle
+        if (v.comp_angle.length === 8) {
+          let space = 3;
+          let len = space * 2;
+          if (v.comp_angle[0] === "1") {
+            let startX = left + space;
+            let startY = top + space;
+            const line1 = new Konva.Line({
+              points: [startX, startY, startX, startY + len],
+              stroke: color,
+              strokeWidth: 1,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            const line2 = new Konva.Line({
+              points: [startX, startY, startX + len, startY],
+              stroke: color,
+              strokeWidth: 1,
+              lineJoin: "round",
+              lineCap: "round",
+            });
+            layer.add(line1, line2);
+          }
+          if (v.comp_angle[1] === "1") {
+            let startX = right - space;
+            let startY = top + space;
+            const line1 = new Konva.Line({
+              points: [startX, startY, startX, startY + len],
+              stroke: color,
+              strokeWidth: 1,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            const line2 = new Konva.Line({
+              points: [startX, startY, startX - len, startY],
+              stroke: color,
+              strokeWidth: 1,
+              lineJoin: "round",
+              lineCap: "round",
+            });
+            layer.add(line1, line2);
+          }
+          if (v.comp_angle[2] === "1") {
+            let startX = left - space;
+            let startY = bottom - space;
+            const line1 = new Konva.Line({
+              points: [startX, startY, startX, startY - len],
+              stroke: color,
+              strokeWidth: 1,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            const line2 = new Konva.Line({
+              points: [startX, startY, startX - len, startY],
+              stroke: color,
+              strokeWidth: 1,
+              lineJoin: "round",
+              lineCap: "round",
+            });
+            layer.add(line1, line2);
+          }
+          if (v.comp_angle[3] === "1") {
+            let startX = left + space;
+            let startY = bottom - space;
+            const line1 = new Konva.Line({
+              points: [startX, startY, startX, startY - len],
+              stroke: color,
+              strokeWidth: 1,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            const line2 = new Konva.Line({
+              points: [startX, startY, startX + len, startY],
+              stroke: color,
+              strokeWidth: 1,
+              lineJoin: "round",
+              lineCap: "round",
+            });
+            layer.add(line1, line2);
+          }
+          if (v.comp_angle[4] === "1") {
+            let startX = mid_x - space;
+            let startY = mid_y - space;
+            const line1 = new Konva.Line({
+              points: [startX, startY, startX, startY - len],
+              stroke: color,
+              strokeWidth: 1,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            const line2 = new Konva.Line({
+              points: [startX, startY, startX - len, startY],
+              stroke: color,
+              strokeWidth: 1,
+              lineJoin: "round",
+              lineCap: "round",
+            });
+            layer.add(line1, line2);
+          }
+          if (v.comp_angle[5] === "1") {
+            let startX = mid_x + space;
+            let startY = mid_y - space;
+            const line1 = new Konva.Line({
+              points: [startX, startY, startX, startY - len],
+              stroke: color,
+              strokeWidth: 1,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            const line2 = new Konva.Line({
+              points: [startX, startY, startX + len, startY],
+              stroke: color,
+              strokeWidth: 1,
+              lineJoin: "round",
+              lineCap: "round",
+            });
+            layer.add(line1, line2);
+          }
+          if (v.comp_angle[6] === "1") {
+            let startX = mid_x + space;
+            let startY = mid_y + space;
+            const line1 = new Konva.Line({
+              points: [startX, startY, startX, startY + len],
+              stroke: color,
+              strokeWidth: 1,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            const line2 = new Konva.Line({
+              points: [startX, startY, startX + len, startY],
+              stroke: color,
+              strokeWidth: 1,
+              lineJoin: "round",
+              lineCap: "round",
+            });
+            layer.add(line1, line2);
+          }
+          if (v.comp_angle[7] === "1") {
+            let startX = mid_x - space;
+            let startY = mid_y + space;
+            const line1 = new Konva.Line({
+              points: [startX, startY, startX, startY + len],
+              stroke: color,
+              strokeWidth: 1,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            const line2 = new Konva.Line({
+              points: [startX, startY, startX - len, startY],
+              stroke: color,
+              strokeWidth: 1,
+              lineJoin: "round",
+              lineCap: "round",
+            });
+            layer.add(line1, line2);
+          }
+        }
+      }
     } else if (k === "GroundSign") {
       let [sx, sy] = toIndex(v.start, rows_len, cols_len);
       let [ex, ey] = toIndex(v.end, rows_len, cols_len);

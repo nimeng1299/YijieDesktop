@@ -12,5 +12,7 @@ This template should help get you started developing with Tauri, SvelteKit and T
 ## Todo
 
 1. 剩下几个sign
+2. 提示框的color转换
 3. 预设聊天
 4. Theme Controller
+5. 棋盘右键也能走子

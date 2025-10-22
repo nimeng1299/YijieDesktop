@@ -7,6 +7,7 @@ use crate::content::sign::{
     badge_sign::BadgeSign,
     cache_sign::{CacheSign, CacheSignKey},
     color_sign::ColorSign,
+    figure_sign::FigureSign,
     ground_sign::GroundSign,
     line_sign::LineSign,
     path_sign::PathSign,
@@ -37,6 +38,7 @@ pub enum SignType {
     BadgeSign(BadgeSign),
     CacheSign(CacheSign),
     ColorSign(ColorSign),
+    FigureSign(FigureSign),
     GroundSign(GroundSign),
     LineSign(LineSign),
     PathSign(PathSign),
@@ -88,6 +90,11 @@ pub fn sign_derialize(msg: String, send: impl Fn(String)) -> Vec<SignType> {
                     res.push(SignType::ColorSign(color_sign));
                 };
             }
+            "FigureSign" => {
+                if let Ok(figure_sign) = FigureSign::deserialize_str(sign_s) {
+                    res.push(SignType::FigureSign(figure_sign));
+                };
+            }
             "GroundSign" => {
                 if let Ok(ground_sign) = GroundSign::deserialize_str(sign_s) {
                     res.push(SignType::GroundSign(ground_sign));
@@ -113,7 +120,9 @@ pub fn sign_derialize(msg: String, send: impl Fn(String)) -> Vec<SignType> {
                     res.push(SignType::TitleSign(title_sign));
                 };
             }
-            _ => {}
+            _ => {
+                println!("unknown sign:{sign_s:?}");
+            }
         }
     }
 
