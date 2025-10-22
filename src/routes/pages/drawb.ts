@@ -2267,3 +2267,35 @@ export function drawPiece(
     }
   }
 }
+
+export function drawAassist(
+  layer: Konva.Layer,
+  map: Map<number, number>,
+  board_x,
+  board_y,
+  cols_len,
+  rows_len,
+  finalWidth,
+) {
+  const colors = [
+    "black",
+    "red",
+    "yellow",
+    "blue",
+    "green",
+    "pink",
+    "gray",
+    "purple",
+  ];
+  map.forEach((value, key) => {
+    let [i, j] = toIndex(key, rows_len, cols_len);
+    const rect = new Konva.Rect({
+      x: board_x + j * finalWidth + finalWidth * 0.05,
+      y: board_y + i * finalWidth + finalWidth * 0.05,
+      width: finalWidth * 0.9,
+      height: finalWidth * 0.9,
+      fill: colors[value],
+    });
+    layer.add(rect);
+  });
+}

@@ -9,13 +9,14 @@
     let { canvasWidth } = $state(200);
     let { board_x } = $state(0);
     let { board_y } = $state(0);
+    const assistMap = new Map();
     let stage;
 
     let boardElement;
     let resizeObserver;
 
     // 绘制函数
-    function draw() {
+    function draw(isGameChange = false) {
         stage.destroyChildren();
         stage.draw();
         if (
@@ -32,6 +33,10 @@
         }
         const _game = $state.snapshot(game);
         let layer = new Konva.Layer();
+
+        if (isGameChange) {
+            assistMap.clear();
+        }
 
         const boardDiv = document.getElementById("board");
         const boardWidth = boardDiv.clientWidth - 1.5;
@@ -115,6 +120,16 @@
             finalWidth,
         );
 
+        drawb.drawAassist(
+            layer,
+            assistMap,
+            board_x,
+            board_y,
+            rows_len,
+            cols_len,
+            finalWidth,
+        );
+
         drawb.drawPiece(
             layer,
             _game.board.pieces,
@@ -147,6 +162,28 @@
         });
 
         stage.on("click", (e) => {
+            if (e.evt.button === 0) {
+                // 左键
+                if (is_reply) return;
+                const pointerPos = stage.getPointerPosition();
+                const x = Math.floor((pointerPos.x - board_x) / finalWidth);
+                const y = Math.floor((pointerPos.y - board_y) / finalWidth);
+                if (
+                    x >= 0 &&
+                    y >= 0 &&
+                    x < game.board.cols_len &&
+                    y < game.board.rows_len
+                ) {
+                    //x y反过来
+                    console.log("click", y, x);
+                    invoke("request_move_later", { x: y, y: x });
+                }
+            }
+        });
+
+        stage.on("contextmenu", (e) => {
+            e.evt.preventDefault(); // 阻止浏览器默认右键菜单
+            // 左键
             if (is_reply) return;
             const pointerPos = stage.getPointerPosition();
             const x = Math.floor((pointerPos.x - board_x) / finalWidth);
@@ -157,9 +194,14 @@
                 x < game.board.cols_len &&
                 y < game.board.rows_len
             ) {
-                //x y反过来
-                console.log("click", y, x);
-                invoke("request_move_later", { x: y, y: x });
+                const index = x * game.board.cols_len + y;
+                if (assistMap.has(index)) {
+                    let old = assistMap.get(index);
+                    assistMap.set(index, (old + 1) % 8);
+                } else {
+                    assistMap.set(index, 0);
+                }
+                draw();
             }
         });
 
@@ -201,7 +243,7 @@
         let n = JSON.stringify($state.snapshot(game));
         if (curr === n) return;
         curr = n;
-        draw();
+        draw(true);
     });
 </script>
 

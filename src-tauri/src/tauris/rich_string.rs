@@ -8,6 +8,16 @@ fn escape_html(s: &str) -> String {
         .replace('\'', "&#39;")
 }
 
+fn aarrggbb_to_rrggbbaa(color: String) -> String {
+    if color.len() != 9 || !color.starts_with('#') {
+        return color; // 格式不对
+    }
+    let a = &color[1..3];   // aa
+    let rgb = &color[3..];  // rrggbb
+    format!("#{}{}", rgb, a)// 拼成 #rrggbbaa
+}
+
+
 ///
 /// 把字符串中 `{{...}}` 替换为 HTML。
 /// 如果匹配中的任一属性名出现在 `ignore_keys` 中，则跳过该标记（保持原样）
@@ -51,7 +61,7 @@ pub fn rich_to_html(input: &str, ignore_keys: &[&str]) -> String {
 
                 match key {
                     "color" => {
-                        styles.push(format!("color:{}", escape_html(value)));
+                        styles.push(format!("color:{}", aarrggbb_to_rrggbbaa(escape_html(value))));
                     }
                     "scale" => {
                         styles.push(format!("font-size:{}em", value));

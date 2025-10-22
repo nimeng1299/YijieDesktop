@@ -99,6 +99,9 @@
 
     // 右键菜单
     function show_menu(e) {
+        if (e.target.closest(".konvajs-content")) {
+            return;
+        }
         e.preventDefault(); // 阻止默认右键菜单
         menuPosition = [e.clientX, e.clientY];
         menuVisible = true;
