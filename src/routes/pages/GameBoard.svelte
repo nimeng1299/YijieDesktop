@@ -110,8 +110,18 @@
             finalWidth,
         );
 
+        const clipGroup = new Konva.Group({
+            clip: {
+                x: board_x,
+                y: board_y,
+                width: rows_len * finalWidth,
+                height: cols_len * finalWidth,
+            },
+        });
+        layer.add(clipGroup);
+
         drawb.drawSignBefore(
-            layer,
+            clipGroup,
             _game.sign,
             board_x,
             board_y,
@@ -141,7 +151,7 @@
         );
 
         drawb.drawSignAfter(
-            layer,
+            clipGroup,
             _game.sign,
             board_x,
             board_y,
