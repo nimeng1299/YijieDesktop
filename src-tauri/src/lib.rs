@@ -1,3 +1,8 @@
+use crate::{
+    api::{get_current_exe_dir, visit_dirs},
+    content::sign::{cache_sign::CacheSignKey, SignType, CACHE_MAP},
+};
+
 pub mod account;
 pub mod api;
 pub mod command;
@@ -10,6 +15,24 @@ pub mod tauris;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // read CacheMap
+    if let Ok(dir) = get_current_exe_dir() {
+        let dir = dir.join("CacheSign");
+        let _ = visit_dirs(&dir, &|path| {
+            if let Some(filename) = path.file_stem() {
+                if let Ok(key) = CacheSignKey::from_string(filename.to_string_lossy().to_string()) {
+                    if let Ok(content) = std::fs::read_to_string(path) {
+                        if let Ok(signs) = serde_json::from_str::<Vec<SignType>>(&content) {
+                            println!("from disk read cache: {key:?}");
+                            CACHE_MAP.insert(key, signs);
+                        }
+                    };
+                }
+            }
+            println!("文件: {:?}", path);
+        });
+    }
+
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())

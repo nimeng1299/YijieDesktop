@@ -263,7 +263,7 @@ impl Player {
                 self.data.change_move(self.app.clone(), false);
             }
             Msger::ReturnCacheSignContent => {
-                self.data.game.add_cache_sign(msg);
+                self.data.game.add_cache_sign(msg).await;
                 listen::update_game(self.app.clone(), self.data.game.clone());
             }
             Msger::LoginFailed => {

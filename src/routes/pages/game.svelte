@@ -27,9 +27,11 @@
             />
         </div>
     </div>
-    <div class="game-middle">
+    <div class="game-middle flex flex-col h-full">
         <GameBoard {game} {can_move} is_reply={false} />
-        <div hidden={game.game_tip === ""}>{game.game_tip}</div>
+        <div class="flex-1" hidden={game.game_tip === ""}>
+            {game.game_tip}
+        </div>
     </div>
     <div class="game-right flex flex-col h-full">
         <GameSpectator room_name={room.name} spectator={room.spectator}

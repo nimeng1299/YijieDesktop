@@ -662,6 +662,15 @@ export function drawSignBefore(
 
         // drawCompCenArc
         if (v.comp_cen_arc.length === 4) {
+          const clipGroup = new Konva.Group({
+            clip: {
+              x: board_x,
+              y: board_y,
+              width: rows_len * finalWidth,
+              height: cols_len * finalWidth,
+            },
+          });
+          layer.add(clipGroup);
           if (v.comp_cen_arc[0] === "1") {
             let arc = createEllipseArc(
               left,
@@ -672,7 +681,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.comp_cen_arc[1] === "1") {
             let arc = createEllipseArc(
@@ -684,20 +693,29 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.comp_cen_arc[2] === "1") {
             let arc = createEllipseArc(left, top, right, bottom, 0, 90, color);
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.comp_cen_arc[3] === "1") {
             let arc = createEllipseArc(left, top, right, bottom, 90, 90, color);
-            layer.add(arc);
+            clipGroup.add(arc);
           }
         }
 
         // drawCenExpArc
         if (v.cen_exp_arc.length === 8) {
+          const clipGroup = new Konva.Group({
+            clip: {
+              x: board_x,
+              y: board_y,
+              width: rows_len * finalWidth,
+              height: cols_len * finalWidth,
+            },
+          });
+          layer.add(clipGroup);
           if (v.cen_exp_arc[0] === "1") {
             let arc = createEllipseArc(
               left,
@@ -708,7 +726,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.cen_exp_arc[1] === "1") {
             let arc = createEllipseArc(
@@ -720,7 +738,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.cen_exp_arc[2] === "1") {
             let arc = createEllipseArc(
@@ -732,7 +750,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.cen_exp_arc[3] === "1") {
             let arc = createEllipseArc(
@@ -744,7 +762,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.cen_exp_arc[4] === "1") {
             let arc = createEllipseArc(
@@ -756,7 +774,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.cen_exp_arc[5] === "1") {
             let arc = createEllipseArc(
@@ -768,7 +786,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.cen_exp_arc[6] === "1") {
             let arc = createEllipseArc(
@@ -780,7 +798,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.cen_exp_arc[7] === "1") {
             let arc = createEllipseArc(
@@ -792,12 +810,21 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
         }
 
         // drawCorExpArc
         if (v.cor_exp_arc.length === 4) {
+          const clipGroup = new Konva.Group({
+            clip: {
+              x: board_x,
+              y: board_y,
+              width: rows_len * finalWidth,
+              height: cols_len * finalWidth,
+            },
+          });
+          layer.add(clipGroup);
           if (v.cor_exp_arc[0] === "1") {
             let arc = createEllipseArc(
               left - half_x,
@@ -808,7 +835,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.cor_exp_arc[1] === "1") {
             let arc = createEllipseArc(
@@ -820,7 +847,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.cor_exp_arc[2] === "1") {
             let arc = createEllipseArc(
@@ -832,7 +859,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.cor_exp_arc[3] === "1") {
             let arc = createEllipseArc(
@@ -844,12 +871,21 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
         }
 
         // drawCorCenArc
         if (v.cor_cen_arc.length === 4) {
+          const clipGroup = new Konva.Group({
+            clip: {
+              x: board_x,
+              y: board_y,
+              width: rows_len * finalWidth,
+              height: cols_len * finalWidth,
+            },
+          });
+          layer.add(clipGroup);
           let width = right - left;
           let height = bottom - top;
           if (v.cor_cen_arc[0] === "1") {
@@ -862,7 +898,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.cor_cen_arc[1] === "1") {
             let arc = createEllipseArc(
@@ -874,7 +910,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.cor_cen_arc[2] === "1") {
             let arc = createEllipseArc(
@@ -886,7 +922,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.cor_cen_arc[3] === "1") {
             let arc = createEllipseArc(
@@ -898,12 +934,21 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
         }
 
         // drawSideExpArc
         if (v.side_exp_arc.length === 8) {
+          const clipGroup = new Konva.Group({
+            clip: {
+              x: board_x,
+              y: board_y,
+              width: rows_len * finalWidth,
+              height: cols_len * finalWidth,
+            },
+          });
+          layer.add(clipGroup);
           let width = right - left;
           let height = bottom - top;
           if (v.side_exp_arc[0] === "1") {
@@ -916,7 +961,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.side_exp_arc[1] === "1") {
             let arc = createEllipseArc(
@@ -928,7 +973,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.side_exp_arc[2] === "1") {
             let arc = createEllipseArc(
@@ -940,7 +985,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.side_exp_arc[3] === "1") {
             let arc = createEllipseArc(
@@ -952,7 +997,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.side_exp_arc[4] === "1") {
             let arc = createEllipseArc(
@@ -964,7 +1009,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.side_exp_arc[5] === "1") {
             let arc = createEllipseArc(
@@ -976,7 +1021,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.side_exp_arc[6] === "1") {
             let arc = createEllipseArc(
@@ -988,7 +1033,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.side_exp_arc[7] === "1") {
             let arc = createEllipseArc(
@@ -1000,12 +1045,21 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
         }
 
         // drawCorMidArc
         if (v.cor_mid_arc.length === 8) {
+          const clipGroup = new Konva.Group({
+            clip: {
+              x: board_x,
+              y: board_y,
+              width: rows_len * finalWidth,
+              height: cols_len * finalWidth,
+            },
+          });
+          layer.add(clipGroup);
           let width = right - left;
           let height = bottom - top;
           if (v.cor_mid_arc[0] === "1") {
@@ -1018,7 +1072,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.cor_mid_arc[1] === "1") {
             let arc = createEllipseArc(
@@ -1030,7 +1084,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.cor_mid_arc[2] === "1") {
             let arc = createEllipseArc(
@@ -1042,7 +1096,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.cor_mid_arc[3] === "1") {
             let arc = createEllipseArc(
@@ -1054,7 +1108,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.cor_mid_arc[4] === "1") {
             let arc = createEllipseArc(
@@ -1066,7 +1120,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.cor_mid_arc[5] === "1") {
             let arc = createEllipseArc(
@@ -1078,7 +1132,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.cor_mid_arc[6] === "1") {
             let arc = createEllipseArc(
@@ -1090,7 +1144,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
           if (v.cor_mid_arc[7] === "1") {
             let arc = createEllipseArc(
@@ -1102,7 +1156,7 @@ export function drawSignBefore(
               90,
               color,
             );
-            layer.add(arc);
+            clipGroup.add(arc);
           }
         }
 
@@ -2289,6 +2343,7 @@ export function drawAassist(
   ];
   map.forEach((value, key) => {
     let [i, j] = toIndex(key, rows_len, cols_len);
+    console.log(key, i, j);
     const rect = new Konva.Rect({
       x: board_x + j * finalWidth + finalWidth * 0.05,
       y: board_y + i * finalWidth + finalWidth * 0.05,

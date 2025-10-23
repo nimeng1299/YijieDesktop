@@ -54,7 +54,7 @@ impl HallRoom {
                 spectator: datas[5].split(",").map(|x| x.to_string()).collect(),
                 player_num: datas[6].parse()?,
                 max_player_num: datas[7].parse()?,
-                introduction: datas[8].to_string(),
+                introduction: crate::tauris::rich_to_html(&datas[8].to_string(), &vec!["click"]),
                 sort: datas[9].parse()?,
             };
             Ok(room)

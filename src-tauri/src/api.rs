@@ -91,3 +91,22 @@ pub fn get_foramt_time() -> String {
         year, month, day, hour, minute, second
     )
 }
+
+// 递归遍历目录
+pub fn visit_dirs<F>(dir: &Path, cb: &F) -> std::io::Result<()>
+where
+    F: Fn(&Path),
+{
+    if dir.is_dir() {
+        for entry in std::fs::read_dir(dir)? {
+            let entry = entry?;
+            let path = entry.path();
+            if path.is_dir() {
+                visit_dirs(&path, cb)?; // 递归调用
+            } else {
+                cb(&path); // ✅ 调用传入的闭包
+            }
+        }
+    }
+    Ok(())
+}

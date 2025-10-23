@@ -66,7 +66,7 @@
                                     </div>
                                 </div>
                                 <p class="list-col-wrap text-xs">
-                                    {data.introduction}
+                                    {@html data.introduction}
                                 </p>
                                 <div class="flex justify-end">
                                     <button

@@ -1,6 +1,9 @@
-use crate::content::{
-    board::Board,
-    sign::{cache_sign::CacheSign, sign_derialize, SignType, CACHE_MAP},
+use crate::{
+    api::{get_current_exe_dir, save_file},
+    content::{
+        board::Board,
+        sign::{cache_sign::CacheSign, sign_derialize, SignType, CACHE_MAP},
+    },
 };
 use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
@@ -38,7 +41,7 @@ impl Game {
         }
     }
 
-    pub fn add_cache_sign(&mut self, cache_msg: String) {
+    pub async fn add_cache_sign(&mut self, cache_msg: String) {
         let signs = sign_derialize(cache_msg, |_| {});
 
         for s in &self.sign {
@@ -46,6 +49,14 @@ impl Game {
                 SignType::CacheSign(c) => {
                     CACHE_MAP.insert(c.toKey(), signs.clone());
                     println!("cache: key:{:#?}, value:{:#?}", c.toKey(), signs);
+                    // 添加到本地文件
+                    let filename = c.toKey().to_string();
+                    if let Ok(dir) = get_current_exe_dir() {
+                        let dir = dir.join("CacheSign").join(format!("{filename}.json"));
+                        if let Ok(file_value) = serde_json::to_string(&signs) {
+                            let _ = save_file(dir, file_value).await;
+                        };
+                    }
                 }
                 _ => {}
             }

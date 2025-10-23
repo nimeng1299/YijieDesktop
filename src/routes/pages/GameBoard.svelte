@@ -110,18 +110,8 @@
             finalWidth,
         );
 
-        const clipGroup = new Konva.Group({
-            clip: {
-                x: board_x,
-                y: board_y,
-                width: rows_len * finalWidth,
-                height: cols_len * finalWidth,
-            },
-        });
-        layer.add(clipGroup);
-
         drawb.drawSignBefore(
-            clipGroup,
+            layer,
             _game.sign,
             board_x,
             board_y,
@@ -151,7 +141,7 @@
         );
 
         drawb.drawSignAfter(
-            clipGroup,
+            layer,
             _game.sign,
             board_x,
             board_y,
@@ -204,13 +194,14 @@
                 x < game.board.cols_len &&
                 y < game.board.rows_len
             ) {
-                const index = x * game.board.cols_len + y;
+                const index = x * game.board.rows_len + y;
                 if (assistMap.has(index)) {
                     let old = assistMap.get(index);
                     assistMap.set(index, (old + 1) % 8);
                 } else {
                     assistMap.set(index, 0);
                 }
+                console.log("right click", x, y, index);
                 draw();
             }
         });
